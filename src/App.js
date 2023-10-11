@@ -1,25 +1,27 @@
-import logo from './logo.svg';
 import './App.css';
+import {ToastContainer} from "react-toastify";
+import HeaderComponent from "./components/header/HeaderComponent"
+import FooterComponent from "./components/footer/FooterComponent"
+import "react-bootstrap"
+import "bootstrap-4-react"
+import NavigationComponent from "./components/nav/NavigationComponent";
+import RouterMain from "./router/RouterMain";
+
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+    return (
+        <div style={{ marginLeft : 100 , marginRight:100}}>
+            <HeaderComponent/>
+          <div style={{ display: 'flex', marginTop:50}}>
+              <NavigationComponent/>
+              <div style={{ marginLeft: 50 , width:'100%'}}>
+                  <RouterMain/>
+              </div>
+          </div>
+            <FooterComponent/>
+            <ToastContainer/>
+        </div>
+    )
 }
 
 export default App;
