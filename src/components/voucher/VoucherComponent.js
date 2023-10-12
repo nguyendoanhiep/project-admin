@@ -3,7 +3,8 @@ import {useDispatch, useSelector} from "react-redux";
 import React, {useEffect, useState} from "react";
 import {addOrUpdateVoucher, getAllVoucher} from "../../redux/thunk/VoucherThunk";
 import moment from "moment";
-const { Search} = Input;
+
+const {Search} = Input;
 
 const VoucherComponent = () => {
     const columns = [
@@ -23,7 +24,7 @@ const VoucherComponent = () => {
             title: 'Giá trị',
             dataIndex: 'value',
             key: 'value',
-            width: 140
+            width: 120
         },
         {
             title: 'Trạng thái',
@@ -32,10 +33,10 @@ const VoucherComponent = () => {
             width: 140,
             render: (text) => {
                 switch (text) {
-                    case 0:
-                        return <span className='status-inactive'>Không hoạt động</span>
                     case 1:
                         return <span className='status-active'>Đang hoạt động</span>
+                    case 2:
+                        return <span className='status-inactive'>Không hoạt động</span>
                     default:
                         return 'Không rõ';
                 }
@@ -70,24 +71,24 @@ const VoucherComponent = () => {
     ];
 
     const STATUS_OPTIONS = [
-        {value: 0, label: 'Không hoạt động'},
         {value: 1, label: 'Đang hoạt động'},
-        {value: 2, label: 'Không xác định'},
+        {value: 2, label: 'Không hoạt động'},
+        {value: 3, label: 'Đã sử dụng'},
     ];
 
     const dispatch = useDispatch();
-    const [voucher, setVoucher] = useState({
-    })
+    const [voucher, setVoucher] = useState({})
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
-    const [page, setPage] = useState(1);
-    const [size, setSize] = useState(10);
-    const [name, setName] = useState(null);
-    const [code, setCode] = useState(null);
-    const [status, setStatus] = useState(1);
-    const [ascOrDesc, setAscOrDesc] = useState(null);
+    const [params, setParams] = useState({
+        page: 1,
+        size: 10,
+        name: '',
+        code: '',
+        status: 0,
+        ascOrDesc: ''
+    });
     const voucherList = useSelector((state) => state.voucher.data);
-    const isSaveSuccess = useSelector((state) => state.voucher.isSaveSuccess)
 
     const openAddOrUpdate = (record) => {
         setIsAddOrUpdate(true)
@@ -100,8 +101,6 @@ const VoucherComponent = () => {
                 status: 1
             });
         }
-
-
     };
     const closeAddOrUpdate = () => {
         setIsAddOrUpdate(false)
@@ -110,24 +109,25 @@ const VoucherComponent = () => {
     const handleDelete = (record) => {
     };
     const onSearch = async (value) => {
-        await dispatch(getAllVoucher(page, size, value))
+        await setParams({...params, name: value})
+        await dispatch(getAllVoucher(params.page, params.size, value, params.code, params.status, params.ascOrDesc))
     };
-    const handleAddOrUpdate = async () => {
-        await dispatch(addOrUpdateVoucher(voucher))
-        if (isSaveSuccess) {
-            setIsAddOrUpdate(false);
-            await dispatch(getAllVoucher(page, size, ""))
-        }
+
+    const isSaveSuccess = useSelector((state) => state.voucher.isSaveSuccess)
+
+    const handleAddOrUpdate = () => {
+        dispatch(addOrUpdateVoucher(voucher))
     }
 
     const handlePageChange = (e) => {
-        setPage(e)
-        dispatch(getAllVoucher(e, size, ""))
+        setParams({...params, page: e})
+        dispatch(getAllVoucher(params.page, params.size, params.name, params.code, params.status, params.ascOrDesc))
 
     }
     useEffect(() => {
-        dispatch(getAllVoucher(page, size, name,code,status,ascOrDesc))
-    }, [])
+        setIsAddOrUpdate(false);
+        dispatch(getAllVoucher(params.page, params.size, params.name, params.code, params.status, params.ascOrDesc))
+    }, [isSaveSuccess])
     return (
         <div style={{position: 'relative'}}>
             <div style={{
@@ -138,6 +138,7 @@ const VoucherComponent = () => {
                     <Select
                         placeholder="Select a status"
                         options={STATUS_OPTIONS}
+                        onChange={(e) => setParams({...params, status: e})}
                     />
                     <Search
                         placeholder="Nhập tên sản phẩm"
@@ -146,15 +147,15 @@ const VoucherComponent = () => {
                             width: 250,
                             marginBottom: 20
                         }}
-
+                        onSearch={value => onSearch(value)}
                     />
                 </div>
                 <div>
                     <Button onClick={() => openAddOrUpdate()}
                             type="primary"
                             style={{
-                                backgroundColor:"#00CC00",
-                                minHeight:32
+                                backgroundColor: "#00CC00",
+                                minHeight: 32
                             }
                             }> Thêm Voucher </Button>
                 </div>
@@ -169,8 +170,8 @@ const VoucherComponent = () => {
                 pagination={false}
                 bordered/>
             <Pagination
-                current={page}
-                pageSize={size}
+                current={params.page}
+                pageSize={params.size}
                 total={voucherList.totalElements}
                 onChange={handlePageChange}
                 style={{
@@ -207,23 +208,23 @@ const VoucherComponent = () => {
                     <Select
                         key={voucher.id}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        defaultValue={voucher.status ? voucher.status : 1}
+                        value={voucher.status ? voucher.status : 1}
                         onChange={(e) => setVoucher({...voucher, status: e})}
                         options={STATUS_OPTIONS}
                     />
                     <DatePicker
-                        defaultValue={voucher.voucherStartDate ? moment(voucher.voucherStartDate,"DD-MM-YYYY HH:mm:ss") : null}
-                        onChange={(e)=> {
-                            console.log(e)
-                            console.log(voucher.voucherStartDate)
-                            console.log(moment(voucher.voucherStartDate))
-                            setVoucher({...voucher, voucherStartDate: e})
+                        value={voucher.voucherStartDate ? moment(voucher.voucherStartDate, "DD-MM-YYYY HH:mm:ss") : null}
+                        onChange={(e) => {
+                            setVoucher({...voucher, voucherStartDate: e.format("DD-MM-YYYY HH:mm:ss")})
                         }}
-                        showTime />
+                        showTime/>
                     <DatePicker
-                        defaultValue={voucher.voucherExpirationDate ? moment(voucher.voucherExpirationDate,"DD-MM-YYYY HH:mm:ss") : null}
-                        onChange={(e)=> setVoucher({...voucher, voucherExpirationDate: e})}
-                        showTime />
+                        value={voucher.voucherExpirationDate ? moment(voucher.voucherExpirationDate, "DD-MM-YYYY HH:mm:ss") : null}
+                        onChange={(e) => setVoucher({
+                            ...voucher,
+                            voucherExpirationDate: e.format("DD-MM-YYYY HH:mm:ss")
+                        })}
+                        showTime/>
                 </div>
 
             </Modal>

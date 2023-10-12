@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {addOrUpdateProduct, getAllProduct} from "../../redux/thunk/ProductThuck";
 import {Button, Input, Modal, Pagination, Select, Table} from 'antd';
-import {SearchOutlined} from "@ant-design/icons";
 
 const {TextArea, Search} = Input;
 const ProductComponent = () => {
@@ -23,7 +22,7 @@ const ProductComponent = () => {
             title: 'Giá tiền',
             dataIndex: 'price',
             key: 'price',
-            width: 140
+            width: 120
         },
         {
             title: 'Trạng thái',
@@ -32,10 +31,10 @@ const ProductComponent = () => {
             width: 140,
             render: (text) => {
                 switch (text) {
-                    case 0:
-                        return <span className='status-inactive'>Không hoạt động</span>
                     case 1:
                         return <span className='status-active'>Đang hoạt động</span>
+                    case 2:
+                        return <span className='status-inactive'>Không hoạt động</span>
                     default:
                         return 'Không rõ';
                 }
@@ -52,6 +51,8 @@ const ProductComponent = () => {
                         return 'Loại 1'
                     case 2:
                         return 'Loại 2';
+                    case 3:
+                        return 'Loại 3';
                     default:
                         return 'Không rõ';
                 }
@@ -74,9 +75,9 @@ const ProductComponent = () => {
     ];
 
     const STATUS_OPTIONS = [
-        {value: 0, label: 'Không hoạt động'},
         {value: 1, label: 'Đang hoạt động'},
-        {value: 2, label: 'Không xác định'},
+        {value: 2, label: 'Không hoạt động'},
+        {value: 3, label: 'Không xác định'},
     ];
 
     const TYPE_OPTIONS = [
@@ -87,12 +88,16 @@ const ProductComponent = () => {
 
 
     const dispatch = useDispatch();
-    const [product, setProduct] = useState({
-    })
+    const [product, setProduct] = useState({})
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
-    const [page, setPage] = useState(1);
-    const [size, setSize] = useState(10);
+    const [params, setParams] = useState({
+        page: 1,
+        size: 10,
+        name: '',
+        status: 0,
+        type: 0
+    });
     const productList = useSelector((state) => state.product.data);
     const isSaveData = useSelector((state) => state.product.isSaveData)
 
@@ -107,7 +112,6 @@ const ProductComponent = () => {
                 status: 1,
                 type: 2
             });
-            console.log(product)
         }
 
 
@@ -119,27 +123,22 @@ const ProductComponent = () => {
     const handleDelete = (record) => {
     };
     const onSearch = async (value) => {
-        await dispatch(getAllProduct(page, size, value))
+        setParams({...params, name: value})
+        dispatch(getAllProduct(params.page, params.size, value, params.status, params.type))
     };
     const handleAddOrUpdate = async () => {
         await dispatch(addOrUpdateProduct(product))
-        if (isSaveData) {
-            console.log('isSaveData', isSaveData)
-            setIsAddOrUpdate(false);
-            await dispatch(getAllProduct(page, size, ""))
-        }
     }
 
     const handlePageChange = (e) => {
-        setPage(e)
-        console.log('input page', e)
-        console.log('page', page)
-        dispatch(getAllProduct(e, size, ""))
+        setParams({...params, page: e})
+        dispatch(getAllProduct(params.page, params.size, params.name, params.status, params.type))
 
     }
     useEffect(() => {
-        dispatch(getAllProduct(page, size, ""))
-    }, [])
+        setIsAddOrUpdate(false);
+        dispatch(getAllProduct(params.page, params.size, params.name, params.status, params.type))
+    }, [isSaveData])
     return (
         <div style={{position: 'relative'}}>
             <div style={{
@@ -150,31 +149,32 @@ const ProductComponent = () => {
                     <Select
                         placeholder="Select a status"
                         options={STATUS_OPTIONS}
+                        onChange={(e) => setParams({...params, status: e})}
                     />
                     <Select
                         placeholder="Select a type"
                         options={TYPE_OPTIONS}
+                        onChange={(e) => setParams({...params, type: e})}
                     />
                     <Search
                         placeholder="Nhập tên sản phẩm"
+                        on
                         allowClear
                         style={{
                             width: 250,
                             marginBottom: 20
                         }}
-
+                        onSearch={(e) => onSearch(e)}
                     />
-
-                    {/*<Button icon={<SearchOutlined/>} onClick={onSearch}/>*/}
                 </div>
                 <div>
                     <Button onClick={() => openAddOrUpdate()}
                             type="primary"
                             style={{
-                                backgroundColor:"#00CC00",
-                                minHeight:32
+                                backgroundColor: "#00CC00",
+                                minHeight: 32
                             }
-                    }> Thêm sản phẩm </Button>
+                            }> Thêm sản phẩm </Button>
                 </div>
             </div>
             <Table
@@ -186,8 +186,8 @@ const ProductComponent = () => {
                 dataSource={productList.content}
                 pagination={false} bordered/>
             <Pagination
-                current={page}
-                pageSize={size}
+                current={params.page}
+                pageSize={params.size}
                 total={productList.totalElements}
                 onChange={handlePageChange}
                 style={{
@@ -224,14 +224,14 @@ const ProductComponent = () => {
                     <Select
                         key={product.id}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        defaultValue={product.status ? product.status : 1}
+                        value={product.status ? product.status : 1}
                         onChange={(e) => setProduct({...product, status: e})}
                         options={STATUS_OPTIONS}
                     />
                     <Select
                         key={product.id + 1}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        defaultValue={product.type ? product.type : 2}
+                        value={product.type ? product.type : 2}
                         onChange={(e) => setProduct({...product, type: e})}
                         options={TYPE_OPTIONS}
                     />

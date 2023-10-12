@@ -3,9 +3,9 @@ import axios from "axios";
 import {addOrUpdate, getAll} from "../slice/ProductSlince";
 
 const domain = baseUrl.host + baseUrl.port;
-export const getAllProduct = (page,size,search) => async (dispatch) => {
+export const getAllProduct = (page,size,name,status,type) => async (dispatch) => {
     try {
-        const response = await axios.get(domain + `/product/getAll?page=${page}&size=${size}&search=${search}`);
+        const response = await axios.get(domain + `/product/getAll?page=${page}&size=${size}&name=${name}&status=${status}&type=${type}`);
         dispatch(getAll(response.data));
     } catch (error) {
         console.log(error);
