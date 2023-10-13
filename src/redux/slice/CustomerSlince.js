@@ -1,7 +1,7 @@
 import {createSlice} from "@reduxjs/toolkit";
 
-const productSlice = createSlice({
-    name: 'product',
+const customerSlice = createSlice({
+    name: 'customer',
     initialState: {isGetData: false, data: {} , isSaveData : null},
     reducers: {
         getAll: (state, action) => {
@@ -14,6 +14,6 @@ const productSlice = createSlice({
     },
 });
 
-export const {getAll, addOrUpdate} = productSlice.actions;
+export const {getAll, addOrUpdate} = customerSlice.actions;
 
-export default productSlice.reducer;
+export default customerSlice.reducer;

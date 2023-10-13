@@ -2,7 +2,7 @@ import {createSlice} from "@reduxjs/toolkit";
 
 const voucherSlice = createSlice({
     name: 'voucher',
-    initialState: {isGetData: false, data: {} , isSaveSuccess : false},
+    initialState: {isGetData: false, data: {} , isSaveSuccess : null},
     reducers: {
         getAll: (state, action) => {
             state.isGetData = true;

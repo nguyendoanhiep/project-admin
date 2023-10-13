@@ -28,12 +28,12 @@ const NavigationComponent = () => {
         },
         getItem('Quản trị người dùng', 'sub2', <AppstoreOutlined/>, [
             getItem('Quản lý User', '5'),
-            getItem('Quản lý Customer', '6'),
+            getItem('Quản lý Customer', '/customer',null,null,null,),
         ]),
-        getItem('Quản lý sản phẩm', '7',null,null,null,'/product'),
+        getItem('Quản lý sản phẩm', '/product',null,null,null,),
         getItem('Quản lý đơn hàng', '8'),
         getItem('Quản lý bài viết', '9'),
-        getItem('Quản lý voucher', '10',null,null,null,'/voucher'),
+        getItem('Quản lý voucher', '/voucher',null,null,null),
         getItem('Báo cáo doanh thu', '11', null, [
             getItem('Doanh thu tháng', '12'),
             getItem('Doanh thu quý', '13'),
@@ -44,11 +44,9 @@ const NavigationComponent = () => {
             type: 'divider',
         },
     ];
-    const onClick = (e) => {
-        const item = items.find((item) => item.key === e.key);
-        console.log(item)
-        if (item && item.path) {
-            navigate(item.path);
+    const onClick = (item) => {
+        if (item && item.keyPath[0]) {
+            navigate(item.keyPath[0]);
         }
     };
     return (

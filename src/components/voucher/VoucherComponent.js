@@ -121,7 +121,7 @@ const VoucherComponent = () => {
 
     const handlePageChange = (e) => {
         setParams({...params, page: e})
-        dispatch(getAllVoucher(params.page, params.size, params.name, params.code, params.status, params.ascOrDesc))
+        dispatch(getAllVoucher(e, params.size, params.name, params.code, params.status, params.ascOrDesc))
 
     }
     useEffect(() => {
@@ -156,8 +156,7 @@ const VoucherComponent = () => {
                             style={{
                                 backgroundColor: "#00CC00",
                                 minHeight: 32
-                            }
-                            }> Thêm Voucher </Button>
+                            }}> Thêm Voucher </Button>
                 </div>
             </div>
             <Table
@@ -191,13 +190,16 @@ const VoucherComponent = () => {
                         value={voucher.name || ''}
                         onChange={(e) => setVoucher({...voucher, name: e.target.value})}
                     />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Code"
-                        value={voucher.code || ''}
-                        onChange={(e) => setVoucher({...voucher, code: e.target.value})}
-                    />
+                    {
+                        !isCreate ?
+                            <Input
+                                style={{width: 350, marginTop: 10, marginBottom: 10}}
+                                type="text"
+                                placeholder="Code"
+                                value={voucher.code || ''}
+                                onChange={(e) => setVoucher({...voucher, code: e.target.value})}
+                            /> : null
+                    }
                     <Input
                         style={{width: 350, marginTop: 10, marginBottom: 10}}
                         type="text"

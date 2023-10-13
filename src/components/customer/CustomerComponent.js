@@ -1,27 +1,45 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
-import {addOrUpdateProduct, getAllProduct} from "../../redux/thunk/ProductThuck";
 import {Button, Input, Modal, Pagination, Select, Table} from 'antd';
+import {addOrUpdateCustomer, getAllCustomer} from "../../redux/thunk/CustomerThunk";
 
-const {TextArea, Search} = Input;
-const ProductComponent = () => {
+const {Search} = Input;
+const CustomerComponent = () => {
     const columns = [
         {
-            title: 'Tên sản phẩm',
+            title: 'Họ tên',
             dataIndex: 'name',
             key: 'name',
             width: 180
         },
         {
-            title: 'Mô tả',
-            dataIndex: 'description',
-            key: 'description',
+            title: 'Số điện thoại',
+            dataIndex: 'numberPhone',
+            key: 'numberPhone',
             width: 140
         },
         {
-            title: 'Giá tiền',
-            dataIndex: 'price',
-            key: 'price',
+            title: 'Email',
+            dataIndex: 'email',
+            key: 'email',
+            width: 120
+        },
+        {
+            title: 'Giới tính',
+            dataIndex: 'gender',
+            key: 'email',
+            width: 120
+        },
+        {
+            title: ' Địa chỉ ',
+            dataIndex: 'address',
+            key: 'address',
+            width: 120
+        },
+        {
+            title: ' Ảnh đại diện',
+            dataIndex: 'image_id',
+            key: 'image_id',
             width: 120
         },
         {
@@ -35,24 +53,6 @@ const ProductComponent = () => {
                         return <span className='status-active'>Đang hoạt động</span>
                     case 2:
                         return <span className='status-inactive'>Không hoạt động</span>
-                    default:
-                        return 'Không rõ';
-                }
-            },
-        },
-        {
-            title: 'Phân loại',
-            dataIndex: 'type',
-            key: 'type',
-            width: 120,
-            render: (text) => {
-                switch (text) {
-                    case 1:
-                        return 'Loại 1'
-                    case 2:
-                        return 'Loại 2';
-                    case 3:
-                        return 'Loại 3';
                     default:
                         return 'Không rõ';
                 }
@@ -80,37 +80,28 @@ const ProductComponent = () => {
         {value: 3, label: 'Không xác định'},
     ];
 
-    const TYPE_OPTIONS = [
-        {value: 1, label: 'Loại 1'},
-        {value: 2, label: 'Loại 2'},
-        {value: 3, label: 'Loại 3'},
-    ];
-
-
     const dispatch = useDispatch();
-    const [product, setProduct] = useState({})
+    const [customer, setCustomer] = useState({})
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
     const [params, setParams] = useState({
         page: 1,
         size: 10,
-        name: '',
-        status: 0,
-        type: 0
+        search : '',
+        status : 0
     });
-    const productList = useSelector((state) => state.product.data);
-    const isSaveData = useSelector((state) => state.product.isSaveData)
+    const customerList = useSelector((state) => state.customer.data);
+    const isSaveData = useSelector((state) => state.customer.isSaveData)
 
     const openAddOrUpdate = (record) => {
         setIsAddOrUpdate(true)
         if (record) {
             setIsCreate(false)
-            setProduct(record);
+            setCustomer(record);
         } else {
             setIsCreate(true)
-            setProduct({
-                status: 1,
-                type: 2
+            setCustomer({
+                status: 1
             });
         }
 
@@ -118,26 +109,27 @@ const ProductComponent = () => {
     };
     const closeAddOrUpdate = () => {
         setIsAddOrUpdate(false)
-        setProduct({})
+        setCustomer({})
     }
     const handleDelete = (record) => {
     };
     const onSearch = async (value) => {
-        setParams({...params, name: value})
-        dispatch(getAllProduct(params.page, params.size, value, params.status, params.type))
+        setParams({...params, search: value})
+        dispatch(getAllCustomer(params.page, params.size, value, params.status))
     };
     const handleAddOrUpdate = async () => {
-        await dispatch(addOrUpdateProduct(product))
+        await dispatch(addOrUpdateCustomer(customer))
     }
 
     const handlePageChange = (e) => {
         setParams({...params, page: e})
-        dispatch(getAllProduct(e, params.size, params.name, params.status, params.type))
+        dispatch(getAllCustomer(e, params.size, params.search, params.status))
 
     }
     useEffect(() => {
         setIsAddOrUpdate(false);
-        dispatch(getAllProduct(params.page, params.size, params.name, params.status, params.type))
+        dispatch(getAllCustomer(params.page, params.size, params.search, params.status))
+        console.log(customerList)
     }, [isSaveData])
     return (
         <div style={{position: 'relative'}}>
@@ -151,13 +143,8 @@ const ProductComponent = () => {
                         options={STATUS_OPTIONS}
                         onChange={(e) => setParams({...params, status: e})}
                     />
-                    <Select
-                        placeholder="Select a type"
-                        options={TYPE_OPTIONS}
-                        onChange={(e) => setParams({...params, type: e})}
-                    />
                     <Search
-                        placeholder="Nhập tên sản phẩm"
+                        placeholder="Nhập tên hoặc số điện thoại"
                         allowClear
                         style={{
                             width: 250,
@@ -172,8 +159,7 @@ const ProductComponent = () => {
                             style={{
                                 backgroundColor: "#00CC00",
                                 minHeight: 32
-                            }
-                            }> Thêm sản phẩm </Button>
+                            }}> Thêm khách hàng mới </Button>
                 </div>
             </div>
             <Table
@@ -182,12 +168,12 @@ const ProductComponent = () => {
                     minHeight: 600
                 }}
                 columns={columns}
-                dataSource={productList.content}
+                dataSource={customerList.content}
                 pagination={false} bordered/>
             <Pagination
                 current={params.page}
                 pageSize={params.size}
-                total={productList.totalElements}
+                total={customerList.totalElements}
                 onChange={handlePageChange}
                 style={{
                     minWidth: 200,
@@ -195,50 +181,56 @@ const ProductComponent = () => {
                     margin: 15,
                     alignSelf: 'flex-end'
                 }}/>
-            <Modal title={isCreate ? "Thêm mới sản phẩm" : "Chỉnh sửa sản phẩm"} open={isAddOrUpdate}
+            <Modal title={isCreate ? "Thêm khách hàng mới" : "Chỉnh sửa thông tin"} open={isAddOrUpdate}
                    onOk={handleAddOrUpdate}
                    onCancel={closeAddOrUpdate}>
                 <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
                     <Input
                         style={{width: 350, marginTop: 10, marginBottom: 10}}
                         type="text"
-                        placeholder="Tên sản phẩm"
-                        value={product.name || ''}
-                        onChange={(e) => setProduct({...product, name: e.target.value})}
-                    />
-                    <TextArea
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Mô tả"
-                        value={product.description || ''}
-                        onChange={(e) => setProduct({...product, description: e.target.value})}
+                        placeholder="Tên khách hàng"
+                        value={customer.name || ''}
+                        onChange={(e) => setCustomer({...customer, name: e.target.value})}
                     />
                     <Input
                         style={{width: 350, marginTop: 10, marginBottom: 10}}
                         type="text"
-                        placeholder="Giá tiền"
-                        value={product.price || ''}
-                        onChange={(e) => setProduct({...product, price: e.target.value})}
+                        placeholder="Số điện thoại"
+                        value={customer.numberPhone || ''}
+                        onChange={(e) => setCustomer({...customer, numberPhone: e.target.value})}
+                    />
+                    <Input
+                        style={{width: 350, marginTop: 10, marginBottom: 10}}
+                        type="text"
+                        placeholder="Số điện thoại"
+                        value={customer.numberPhone || ''}
+                        onChange={(e) => setCustomer({...customer, numberPhone: e.target.value})}
+                    />
+                    <Input
+                        style={{width: 350, marginTop: 10, marginBottom: 10}}
+                        type="text"
+                        placeholder="Số điện thoại"
+                        value={customer.numberPhone || ''}
+                        onChange={(e) => setCustomer({...customer, numberPhone: e.target.value})}
+                    />
+                    <Input
+                        style={{width: 350, marginTop: 10, marginBottom: 10}}
+                        type="text"
+                        placeholder="Số điện thoại"
+                        value={customer.numberPhone || ''}
+                        onChange={(e) => setCustomer({...customer, numberPhone: e.target.value})}
                     />
                     <Select
-                        key={product.id}
+                        key={customer.id}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        value={product.status ? product.status : 1}
-                        onChange={(e) => setProduct({...product, status: e})}
+                        value={customer.status ? customer.status : 1}
+                        onChange={(e) => setCustomer({...customer, status: e})}
                         options={STATUS_OPTIONS}
                     />
-                    <Select
-                        key={product.id + 1}
-                        style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        value={product.type ? product.type : 2}
-                        onChange={(e) => setProduct({...product, type: e})}
-                        options={TYPE_OPTIONS}
-                    />
                 </div>
-
             </Modal>
         </div>
 
     )
 }
-export default ProductComponent;
+export default CustomerComponent;
