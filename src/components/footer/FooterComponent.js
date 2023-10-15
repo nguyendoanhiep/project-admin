@@ -1,6 +1,4 @@
 import React from "react";
-import logo from '../../env/img/logo.png';
-import Image from "react-bootstrap/Image";
 import '../../App.css'
 const FooterComponent = () => {
     return (

@@ -1,15 +1,16 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {Button, Input, Modal, Pagination, Select, Table} from 'antd';
-import {addOrUpdateCustomer, getAllCustomer} from "../../redux/thunk/CustomerThunk";
+import {getAllUser, registerUser} from "../../redux/thunk/UserThunk";
+import {logout} from "../../redux/slice/UserSlince";
 
 const {Search} = Input;
-const CustomerComponent = () => {
+const UserComponent = () => {
     const columns = [
         {
-            title: 'Họ tên',
-            dataIndex: 'name',
-            key: 'name',
+            title: 'Username',
+            dataIndex: 'username',
+            key: 'username',
             width: 180
         },
         {
@@ -19,33 +20,15 @@ const CustomerComponent = () => {
             width: 140
         },
         {
-            title: 'Email',
-            dataIndex: 'email',
-            key: 'email',
+            title: 'Ngày khởi tạo',
+            dataIndex: 'createDate',
+            key: 'createDate',
             width: 120
         },
         {
-            title: 'Giới tính',
-            dataIndex: 'gender',
-            key: 'email',
-            width: 120
-        },
-        {
-            title: ' Địa chỉ ',
-            dataIndex: 'address',
-            key: 'address',
-            width: 120
-        },
-        {
-            title: 'Điểm thưởng',
-            dataIndex: 'loyaltyPoints',
-            key: 'loyaltyPoints',
-            width: 120
-        },
-        {
-            title: ' Ảnh đại diện',
-            dataIndex: 'image.urlImage',
-            key: 'image.urlImage',
+            title: ' Ngày chỉnh sửa',
+            dataIndex: 'modifiedDate',
+            key: 'modifiedDate',
             width: 120
         },
         {
@@ -63,6 +46,21 @@ const CustomerComponent = () => {
                         return 'Không rõ';
                 }
             },
+        },
+        {
+            title: 'Roles',
+            dataIndex: 'roles',
+            key: 'roles',
+            width: 140,
+            render: (listRoles) => (
+                <span>
+            {listRoles.map((role, index) => (
+                <span key={index} style={{marginRight: 5}}>
+                    {role.name + " , "}
+                </span>
+            ))}
+        </span>
+            ),
         },
         {
             title: 'Action',
@@ -87,26 +85,29 @@ const CustomerComponent = () => {
     ];
 
     const dispatch = useDispatch();
-    const [customer, setCustomer] = useState({})
+    const [user, setUser] = useState({})
+    const [passwordMatch, setPasswordMatch] = useState(true);
+    const [confirmPassword, setConfirmPassword] = useState('')
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
     const [params, setParams] = useState({
         page: 1,
         size: 10,
-        search : '',
-        status : 0
+        search: '',
+        status: 0
     });
-    const customerList = useSelector((state) => state.customer.data);
-    const isSaveData = useSelector((state) => state.customer.isSaveData)
+    const userList = useSelector((state) => state.user.data);
+    const isSaveData = useSelector((state) => state.user.user)
 
     const openAddOrUpdate = (record) => {
+        setConfirmPassword("")
         setIsAddOrUpdate(true)
         if (record) {
             setIsCreate(false)
-            setCustomer(record);
+            setUser(record);
         } else {
             setIsCreate(true)
-            setCustomer({
+            setUser({
                 status: 1
             });
         }
@@ -115,26 +116,34 @@ const CustomerComponent = () => {
     };
     const closeAddOrUpdate = () => {
         setIsAddOrUpdate(false)
-        setCustomer({})
+        setUser({})
     }
     const handleDelete = (record) => {
     };
     const onSearch = async (value) => {
         setParams({...params, search: value})
-        dispatch(getAllCustomer(params.page, params.size, value, params.status))
+        dispatch(getAllUser(params.page, params.size, value, params.status))
     };
     const handleAddOrUpdate = async () => {
-        await dispatch(addOrUpdateCustomer(customer))
+        await dispatch(registerUser(user))
     }
 
     const handlePageChange = (e) => {
         setParams({...params, page: e})
-        dispatch(getAllCustomer(e, params.size, params.search, params.status))
+        dispatch(getAllUser(e, params.size, params.search, params.status))
 
     }
+    const handleConfirmPasswordChange = (e) => {
+        if (user.password === e) {
+            setPasswordMatch(true);
+        } else {
+            setPasswordMatch(false);
+        }
+    };
+
     useEffect(() => {
         setIsAddOrUpdate(false);
-        dispatch(getAllCustomer(params.page, params.size, params.search, params.status))
+        dispatch(getAllUser(params.page, params.size, params.search, params.status))
     }, [isSaveData])
     return (
         <div style={{position: 'relative'}}>
@@ -149,7 +158,7 @@ const CustomerComponent = () => {
                         onChange={(e) => setParams({...params, status: e})}
                     />
                     <Search
-                        placeholder="Nhập tên hoặc số điện thoại"
+                        placeholder="Nhập username hoặc số điện thoại"
                         allowClear
                         style={{
                             width: 250,
@@ -164,7 +173,7 @@ const CustomerComponent = () => {
                             style={{
                                 backgroundColor: "#00CC00",
                                 minHeight: 32
-                            }}> Thêm khách hàng </Button>
+                            }}> Thêm người dùng</Button>
                 </div>
             </div>
             <Table
@@ -173,12 +182,12 @@ const CustomerComponent = () => {
                     minHeight: 600
                 }}
                 columns={columns}
-                dataSource={customerList.content}
+                dataSource={userList.content}
                 pagination={false} bordered/>
             <Pagination
                 current={params.page}
                 pageSize={params.size}
-                total={customerList.totalElements}
+                total={userList.totalElements}
                 onChange={handlePageChange}
                 style={{
                     minWidth: 200,
@@ -186,57 +195,51 @@ const CustomerComponent = () => {
                     margin: 15,
                     alignSelf: 'flex-end'
                 }}/>
-            <Modal title={isCreate ? "Thêm khách hàng mới" : "Chỉnh sửa thông tin"} open={isAddOrUpdate}
+            <Modal title={isCreate ? "Thêm tài khoản mới" : "Chỉnh sửa thông tin"} open={isAddOrUpdate}
                    onOk={handleAddOrUpdate}
                    onCancel={closeAddOrUpdate}>
                 <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
                     <Input
                         style={{width: 350, marginTop: 10, marginBottom: 10}}
                         type="text"
-                        placeholder="Tên khách hàng"
-                        value={customer.name || ''}
-                        onChange={(e) => setCustomer({...customer, name: e.target.value})}
+                        placeholder="Tên tài khoản"
+                        value={user.username || ''}
+                        onChange={(e) => setUser({...user, name: e.target.value})}
                     />
                     <Input
                         style={{width: 350, marginTop: 10, marginBottom: 10}}
                         type="text"
                         placeholder="Số điện thoại"
-                        value={customer.numberPhone || ''}
-                        onChange={(e) => setCustomer({...customer, numberPhone: e.target.value})}
+                        value={user.numberPhone || ''}
+                        onChange={(e) => setUser({...user, numberPhone: e.target.value})}
                     />
                     <Input
                         style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Email"
-                        value={customer.email || ''}
-                        onChange={(e) => setCustomer({...customer, email: e.target.value})}
+                        type="password"
+                        placeholder="Password"
+                        value={user.password || ''}
+                        onChange={(e) => setUser({...user, password: e.target.value})}
                     />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Địa chỉ"
-                        value={customer.address || ''}
-                        onChange={(e) => setCustomer({...customer, address: e.target.value})}
-                    />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Điểm thưởng"
-                        value={customer.loyaltyPoints || ''}
-                        onChange={(e) => setCustomer({...customer, loyaltyPoints: e.target.value})}
-                    />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Ngày sinh"
-                        value={customer.dateOfBirth || ''}
-                        onChange={(e) => setCustomer({...customer, dateOfBirth: e.target.value})}
-                    />
+                    {
+                        isCreate && <Input
+                            style={{width: 350, marginTop: 10, marginBottom: 10}}
+                            type="password"
+                            placeholder="Comfirm Password"
+                            value={confirmPassword || ''}
+                            onChange={(e) => {
+                                setConfirmPassword(e.target.value)
+                                handleConfirmPasswordChange(e.target.value)
+                            }}
+                        />
+                    }
+                    {!passwordMatch && (
+                        <p style={{color: 'red'}}>Mật khẩu và xác nhận mật khẩu không khớp.</p>
+                    )}
                     <Select
-                        key={customer.id}
+                        key={user.id}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        value={customer.status ? customer.status : 1}
-                        onChange={(e) => setCustomer({...customer, status: e})}
+                        value={user.status ? user.status : 1}
+                        onChange={(e) => setUser({...user, status: e})}
                         options={STATUS_OPTIONS}
                     />
                 </div>
@@ -245,4 +248,4 @@ const CustomerComponent = () => {
 
     )
 }
-export default CustomerComponent;
+export default UserComponent;

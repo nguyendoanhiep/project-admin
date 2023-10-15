@@ -223,14 +223,14 @@ const ProductComponent = () => {
                     <Select
                         key={product.id}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        value={product.status ? product.status : 1}
+                        defaultValue={isCreate ? 1 : product.status}
                         onChange={(e) => setProduct({...product, status: e})}
                         options={STATUS_OPTIONS}
                     />
                     <Select
                         key={product.id + 1}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        value={product.type ? product.type : 2}
+                        defaultValue={isCreate ? 1 : product.type }
                         onChange={(e) => setProduct({...product, type: e})}
                         options={TYPE_OPTIONS}
                     />

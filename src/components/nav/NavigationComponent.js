@@ -27,13 +27,13 @@ const NavigationComponent = () => {
             type: 'divider',
         },
         getItem('Quản trị người dùng', 'sub2', <AppstoreOutlined/>, [
-            getItem('Quản lý User', '5'),
-            getItem('Quản lý Customer', '/customer',null,null,null,),
+            getItem('Quản lý User', '/user'),
+            getItem('Quản lý Customer', '/customer'),
         ]),
-        getItem('Quản lý sản phẩm', '/product',null,null,null,),
+        getItem('Quản lý sản phẩm', '/product'),
         getItem('Quản lý đơn hàng', '8'),
         getItem('Quản lý bài viết', '9'),
-        getItem('Quản lý voucher', '/voucher',null,null,null),
+        getItem('Quản lý voucher', '/voucher'),
         getItem('Báo cáo doanh thu', '11', null, [
             getItem('Doanh thu tháng', '12'),
             getItem('Doanh thu quý', '13'),
@@ -49,6 +49,8 @@ const NavigationComponent = () => {
             navigate(item.keyPath[0]);
         }
     };
+    useEffect(()=>{
+    })
     return (
         isLoggedIn ?
             <div style={{minWidth: 280}}>

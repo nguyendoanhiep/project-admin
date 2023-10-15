@@ -210,22 +210,18 @@ const VoucherComponent = () => {
                     <Select
                         key={voucher.id}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        value={voucher.status ? voucher.status : 1}
+                        defaultValue={isCreate ? 1 : voucher.status}
                         onChange={(e) => setVoucher({...voucher, status: e})}
                         options={STATUS_OPTIONS}
                     />
                     <DatePicker
                         value={voucher.voucherStartDate ? moment(voucher.voucherStartDate, "DD-MM-YYYY HH:mm:ss") : null}
-                        onChange={(e) => {
-                            setVoucher({...voucher, voucherStartDate: e.format("DD-MM-YYYY HH:mm:ss")})
+                        onChange={(e) => {setVoucher({...voucher, voucherStartDate: e && e.format("DD-MM-YYYY HH:mm:ss")})
                         }}
                         showTime/>
                     <DatePicker
                         value={voucher.voucherExpirationDate ? moment(voucher.voucherExpirationDate, "DD-MM-YYYY HH:mm:ss") : null}
-                        onChange={(e) => setVoucher({
-                            ...voucher,
-                            voucherExpirationDate: e.format("DD-MM-YYYY HH:mm:ss")
-                        })}
+                        onChange={(e) => setVoucher({...voucher, voucherExpirationDate: e && e.format("DD-MM-YYYY HH:mm:ss")})}
                         showTime/>
                 </div>
 

@@ -10,14 +10,14 @@ import RouterMain from "./router/RouterMain";
 
 function App() {
     return (
-        <div style={{ marginLeft : 100 , marginRight:100}}>
+        <div style={{marginLeft: '10%', marginRight: '10%'}}>
             <HeaderComponent/>
-          <div style={{ display: 'flex', marginTop:50}}>
-              <NavigationComponent/>
-              <div style={{ marginLeft: 50 , width:'100%'}}>
-                  <RouterMain/>
-              </div>
-          </div>
+            <div style={{display: 'flex', marginTop: 50 , minHeight:720}}>
+                <NavigationComponent/>
+                <div style={{marginLeft: 50, width: '100%'}}>
+                    <RouterMain/>
+                </div>
+            </div>
             <FooterComponent/>
             <ToastContainer/>
         </div>
