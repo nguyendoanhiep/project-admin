@@ -2,14 +2,13 @@ import {createSlice} from "@reduxjs/toolkit";
 
 const productSlice = createSlice({
     name: 'product',
-    initialState: {isGetData: false, data: {} , isSaveData : null},
+    initialState: {isGetData: false, data: {} },
     reducers: {
         getAll: (state, action) => {
             state.isGetData = true;
             state.data = action.payload.data;
         },
         addOrUpdate : (state,action) => {
-            state.isSaveData = action.payload.data
         }
     },
 });

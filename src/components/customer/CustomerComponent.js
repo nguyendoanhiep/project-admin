@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
-import {Button, Input, Modal, Pagination, Select, Table} from 'antd';
+import {Avatar, Button, Input, Modal, Pagination, Select, Table} from 'antd';
 import {addOrUpdateCustomer, getAllCustomer} from "../../redux/thunk/CustomerThunk";
 
 const {Search} = Input;
@@ -10,23 +10,17 @@ const CustomerComponent = () => {
             title: 'Họ tên',
             dataIndex: 'name',
             key: 'name',
-            width: 180
+            width: 160
         },
         {
             title: 'Số điện thoại',
             dataIndex: 'numberPhone',
             key: 'numberPhone',
-            width: 140
+            width: 120
         },
         {
             title: 'Email',
             dataIndex: 'email',
-            key: 'email',
-            width: 120
-        },
-        {
-            title: 'Giới tính',
-            dataIndex: 'gender',
             key: 'email',
             width: 120
         },
@@ -40,19 +34,21 @@ const CustomerComponent = () => {
             title: 'Điểm thưởng',
             dataIndex: 'loyaltyPoints',
             key: 'loyaltyPoints',
-            width: 120
+            width: 100
         },
         {
             title: ' Ảnh đại diện',
-            dataIndex: 'image.urlImage',
             key: 'image.urlImage',
-            width: 120
+            width: 100,
+            render:(text) => {
+                return <Avatar style={{width:70 , height : 70}} src={text.image.urlImage}/>
+            }
         },
         {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
-            width: 140,
+            width: 120,
             render: (text) => {
                 switch (text) {
                     case 1:
@@ -68,6 +64,7 @@ const CustomerComponent = () => {
             title: 'Action',
             dataIndex: '',
             key: 'x',
+            fixed: 'right',
             render: (text, record) => (
                 <span>
                  <Button style={{marginLeft: 5, width: 70}} type="primary"
@@ -76,7 +73,7 @@ const CustomerComponent = () => {
                          onClick={() => handleDelete(record)} danger>Delete</Button>
                 </span>
             ),
-            width: 180
+            width: 160
         },
     ];
 
@@ -93,11 +90,11 @@ const CustomerComponent = () => {
     const [params, setParams] = useState({
         page: 1,
         size: 10,
-        search : '',
-        status : 0
+        search: '',
+        status: 0
     });
     const customerList = useSelector((state) => state.customer.data);
-    const isSaveData = useSelector((state) => state.customer.isSaveData)
+    const [isSaveSuccess , setIsSaveSuccess] = useState(false);
 
     const openAddOrUpdate = (record) => {
         setIsAddOrUpdate(true)
@@ -124,7 +121,10 @@ const CustomerComponent = () => {
         dispatch(getAllCustomer(params.page, params.size, value, params.status))
     };
     const handleAddOrUpdate = async () => {
-        await dispatch(addOrUpdateCustomer(customer))
+        const res = dispatch(addOrUpdateCustomer(customer))
+        if(res){
+            setIsSaveSuccess(res)
+        }
     }
 
     const handlePageChange = (e) => {
@@ -135,13 +135,10 @@ const CustomerComponent = () => {
     useEffect(() => {
         setIsAddOrUpdate(false);
         dispatch(getAllCustomer(params.page, params.size, params.search, params.status))
-    }, [isSaveData])
+    }, [isSaveSuccess])
     return (
-        <div style={{position: 'relative'}}>
-            <div style={{
-                display: 'flex',
-                justifyContent: ' space-between'
-            }}>
+        <div>
+            <div style={{display: 'flex', justifyContent: ' space-between'}}>
                 <div>
                     <Select
                         placeholder="Select a status"
@@ -169,12 +166,17 @@ const CustomerComponent = () => {
             </div>
             <Table
                 rowKey={record => record.id}
-                style={{
-                    minHeight: 600
-                }}
                 columns={columns}
                 dataSource={customerList.content}
-                pagination={false} bordered/>
+                pagination={false}
+                bordered
+                style={{
+                    minHeight:600
+                }}
+                scroll={{
+                    x:1100
+                }}
+            />
             <Pagination
                 current={params.page}
                 pageSize={params.size}
@@ -242,7 +244,6 @@ const CustomerComponent = () => {
                 </div>
             </Modal>
         </div>
-
     )
 }
 export default CustomerComponent;

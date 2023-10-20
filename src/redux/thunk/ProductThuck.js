@@ -24,6 +24,8 @@ export const addOrUpdateProduct = (product) => async (dispatch) => {
     try {
         const response = await axios.post(domain + `/product/addOrUpdate`, product);
         dispatch(addOrUpdate(response.data));
+        return response;
+
     } catch (error) {
         console.log(error);
     }

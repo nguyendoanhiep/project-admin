@@ -1,11 +1,11 @@
 import {baseUrl} from "../../env/Config";
 import axios from "axios";
-import {addOrUpdate, getAll} from "../slice/CustomerSlince";
+import {addOrUpdate, getAll} from "../slice/OrdersSlince";
 
 const domain = baseUrl.host + baseUrl.port;
-export const getAllCustomer = (page,size,search,status) => async (dispatch) => {
+export const getAllOrders = (page,size,search,status) => async (dispatch) => {
     try {
-        const response = await axios.get(domain + `/customer/getAll`,{
+        const response = await axios.get(domain + `/orders/getAll`,{
             params:{
                 page: page,
                 size: size,
@@ -19,9 +19,9 @@ export const getAllCustomer = (page,size,search,status) => async (dispatch) => {
     }
 };
 
-export const addOrUpdateCustomer = (customer) => async (dispatch) => {
+export const addOrUpdateOrders = (orders) => async (dispatch) => {
     try {
-        const response = await axios.post(domain + `/customer/addOrUpdate`,customer);
+        const response = await axios.post(domain + `/orders/addOrUpdate`,orders);
         dispatch(addOrUpdate(response.data));
         return response;
     } catch (error) {

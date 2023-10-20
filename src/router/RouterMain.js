@@ -6,6 +6,8 @@ import ProductComponent from "../components/product/ProductComponent";
 import VoucherComponent from "../components/voucher/VoucherComponent";
 import CustomerComponent from "../components/customer/CustomerComponent";
 import UserComponent from "../components/user/UserComponent";
+import CartComponent from "../components/cart/CartComponent";
+import OrdersComponent from "../components/orders/OrdersComponent";
 
 const RouterMain = () => {
     return (
@@ -16,6 +18,8 @@ const RouterMain = () => {
             <Route path="/voucher" element={<VoucherComponent/>}/>
             <Route path="/customer" element={<CustomerComponent/>}/>
             <Route path="/user" element={<UserComponent/>}/>
+            <Route path="/cart" element={<CartComponent/>}/>
+            <Route path="/orders" element={<OrdersComponent/>}/>
         </Routes>
     )
 };

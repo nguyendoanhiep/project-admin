@@ -1,8 +1,8 @@
 import {createSlice} from "@reduxjs/toolkit";
 
-const voucherSlice = createSlice({
-    name: 'voucher',
-    initialState: {isGetData: false, data: {}},
+const ordersSlice = createSlice({
+    name: 'orders',
+    initialState: {isGetData: false, data: {} },
     reducers: {
         getAll: (state, action) => {
             state.isGetData = true;
@@ -13,6 +13,6 @@ const voucherSlice = createSlice({
     },
 });
 
-export const {getAll, addOrUpdate} = voucherSlice.actions;
+export const {getAll, addOrUpdate} = ordersSlice.actions;
 
-export default voucherSlice.reducer;
+export default ordersSlice.reducer;

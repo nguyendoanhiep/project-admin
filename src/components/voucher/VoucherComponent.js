@@ -24,13 +24,13 @@ const VoucherComponent = () => {
             title: 'Giá trị',
             dataIndex: 'value',
             key: 'value',
-            width: 120
+            width: 110
         },
         {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
-            width: 140,
+            width: 130,
             render: (text) => {
                 switch (text) {
                     case 1:
@@ -58,6 +58,7 @@ const VoucherComponent = () => {
             title: 'Action',
             dataIndex: '',
             key: 'x',
+            fixed: 'right',
             render: (text, record) => (
                 <span>
                  <Button style={{marginLeft: 5, width: 70}} type="primary"
@@ -66,7 +67,7 @@ const VoucherComponent = () => {
                          onClick={() => handleDelete(record)} danger>Delete</Button>
                 </span>
             ),
-            width: 180
+            width: 160
         },
     ];
 
@@ -79,6 +80,7 @@ const VoucherComponent = () => {
     const dispatch = useDispatch();
     const [voucher, setVoucher] = useState({})
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
+    const [isSaveSuccess , setIsSaveSuccess] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
     const [params, setParams] = useState({
         page: 1,
@@ -112,11 +114,11 @@ const VoucherComponent = () => {
         await setParams({...params, name: value})
         await dispatch(getAllVoucher(params.page, params.size, value, params.code, params.status, params.ascOrDesc))
     };
-
-    const isSaveSuccess = useSelector((state) => state.voucher.isSaveSuccess)
-
     const handleAddOrUpdate = () => {
-        dispatch(addOrUpdateVoucher(voucher))
+        const res = dispatch(addOrUpdateVoucher(voucher))
+        if(res){
+            setIsSaveSuccess(res)
+        }
     }
 
     const handlePageChange = (e) => {
@@ -161,13 +163,17 @@ const VoucherComponent = () => {
             </div>
             <Table
                 rowKey={record => record.id}
-                style={{
-                    minHeight: 600
-                }}
                 columns={columns}
                 dataSource={voucherList.content}
                 pagination={false}
-                bordered/>
+                bordered
+                style={{
+                    minHeight:600
+                }}
+                scroll={{
+                    x:1100
+                }}
+            />
             <Pagination
                 current={params.page}
                 pageSize={params.size}
@@ -224,7 +230,6 @@ const VoucherComponent = () => {
                         onChange={(e) => setVoucher({...voucher, voucherExpirationDate: e && e.format("DD-MM-YYYY HH:mm:ss")})}
                         showTime/>
                 </div>
-
             </Modal>
         </div>
 

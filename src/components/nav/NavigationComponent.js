@@ -31,8 +31,8 @@ const NavigationComponent = () => {
             getItem('Quản lý Customer', '/customer'),
         ]),
         getItem('Quản lý sản phẩm', '/product'),
-        getItem('Quản lý đơn hàng', '8'),
-        getItem('Quản lý bài viết', '9'),
+        getItem('Quản lý đơn hàng', '/orders'),
+        getItem('Giỏ hàng', '/cart'),
         getItem('Quản lý voucher', '/voucher'),
         getItem('Báo cáo doanh thu', '11', null, [
             getItem('Doanh thu tháng', '12'),
@@ -53,7 +53,7 @@ const NavigationComponent = () => {
     })
     return (
         isLoggedIn ?
-            <div style={{minWidth: 280}}>
+            <div style={{minWidth: 270}}>
                 <Menu
                     onClick={onClick}
                     defaultSelectedKeys={['1']}

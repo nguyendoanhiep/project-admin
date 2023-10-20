@@ -1,8 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {addOrUpdateProduct, getAllProduct} from "../../redux/thunk/ProductThuck";
-import {Button, Input, Modal, Pagination, Select, Table} from 'antd';
-
+import {Image, Button, Input, Modal, Pagination, Select, Table, Upload} from 'antd';
+import {toast} from "react-toastify";
+import {CheckOutlined, CloseCircleOutlined, DeleteOutlined, PlusOutlined, UploadOutlined} from "@ant-design/icons";
+import {storage} from "../../env/FirebaseConfig";
+import {ref, getDownloadURL, uploadBytesResumable} from 'firebase/storage'
 const {TextArea, Search} = Input;
 const ProductComponent = () => {
     const columns = [
@@ -11,6 +14,17 @@ const ProductComponent = () => {
             dataIndex: 'name',
             key: 'name',
             width: 180
+        },
+        {
+            title: 'Hình ảnh',
+            key: 'images',
+            width: 160,
+            render: (text) => {
+                const image = text.images.find(data => data.priority === 1);
+                if (image) {
+                    return <Image style={{width: 140, height: 140, borderRadius: 10}} src={image.urlImage}/>;
+                }
+            }
         },
         {
             title: 'Mô tả',
@@ -22,13 +36,19 @@ const ProductComponent = () => {
             title: 'Giá tiền',
             dataIndex: 'price',
             key: 'price',
-            width: 120
+            width: 100
+        },
+        {
+            title: 'Số lượng',
+            dataIndex: 'quantity',
+            key: 'price',
+            width: 100
         },
         {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
-            width: 140,
+            width: 130,
             render: (text) => {
                 switch (text) {
                     case 1:
@@ -62,15 +82,24 @@ const ProductComponent = () => {
             title: 'Action',
             dataIndex: '',
             key: 'x',
-            render: (text, record) => (
+            fixed: 'right',
+            render: (record) => (
                 <span>
-                 <Button style={{marginLeft: 5, width: 70}} type="primary"
-                         onClick={() => openAddOrUpdate(record)}>Edit</Button>
-                 <Button style={{marginLeft: 5, width: 70}} type="primary"
-                         onClick={() => handleDelete(record)} danger>Delete</Button>
+                    <Button style={{marginLeft: 5, marginBottom: 5, width: 100}} type="primary"
+                            onClick={() => openAddOrUpdate(record)}>Edit</Button>
+                    <Button style={{marginLeft: 5, marginBottom: 5, width: 100}} type="primary"
+                            onClick={() => handleDelete(record)} danger>Delete</Button>
+                    <Button style={{
+                        marginLeft: 5,
+                        marginBottom: 5,
+                        width: 100,
+                        backgroundColor: record.status === 1 ? "#00CC00" : ""
+                    }}
+                            type="primary"
+                            onClick={() => addToCart(record)} disabled={record.status !== 1}>Add To Cart</Button>
                 </span>
             ),
-            width: 180
+            width: 130
         },
     ];
 
@@ -89,17 +118,20 @@ const ProductComponent = () => {
 
     const dispatch = useDispatch();
     const [product, setProduct] = useState({})
+    const cartItems = JSON.parse(sessionStorage.getItem("cartItems")) || []
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
+    const [isSaveSuccess, setIsSaveSuccess] = useState(false);
+    const [listImage, setListImage] = useState([])
+
     const [isCreate, setIsCreate] = useState(false);
     const [params, setParams] = useState({
         page: 1,
-        size: 10,
+        size: 5,
         name: '',
         status: 0,
         type: 0
     });
     const productList = useSelector((state) => state.product.data);
-    const isSaveData = useSelector((state) => state.product.isSaveData)
 
     const openAddOrUpdate = (record) => {
         setIsAddOrUpdate(true)
@@ -113,12 +145,26 @@ const ProductComponent = () => {
                 type: 2
             });
         }
-
-
     };
+    const addToCart = (productOfCart) => {
+        const product = cartItems && cartItems.find(item => item.id === productOfCart.id)
+        if (product) {
+            product.quantity += 1;
+            product.totalPrice += productOfCart.price;
+        } else {
+            cartItems.push({...productOfCart, quantity: 1, totalPrice: productOfCart.price})
+        }
+        sessionStorage.setItem('cartItems', JSON.stringify(cartItems));
+        toast.success('Thêm vào giỏ hàng thành công!', {
+            className: 'my-toast',
+            position: "top-center",
+            autoClose: 2000,
+        });
+    }
     const closeAddOrUpdate = () => {
         setIsAddOrUpdate(false)
         setProduct({})
+        setListImage([])
     }
     const handleDelete = (record) => {
     };
@@ -127,7 +173,14 @@ const ProductComponent = () => {
         dispatch(getAllProduct(params.page, params.size, value, params.status, params.type))
     };
     const handleAddOrUpdate = async () => {
-        await dispatch(addOrUpdateProduct(product))
+
+        const res = await dispatch(addOrUpdateProduct(product))
+        if (res) {
+            setIsSaveSuccess(res)
+        }
+    }
+    const onDeleteImage = (id) => {
+
     }
 
     const handlePageChange = (e) => {
@@ -138,9 +191,44 @@ const ProductComponent = () => {
     useEffect(() => {
         setIsAddOrUpdate(false);
         dispatch(getAllProduct(params.page, params.size, params.name, params.status, params.type))
-    }, [isSaveData])
+    }, [isSaveSuccess])
+
+    useEffect(()=>{
+        setProduct({
+            ...product,
+            images: listImage
+        });
+    },[listImage])
+    const handleUpload = async ({file, onSuccess, onError}) => {
+        const storageRef = ref(storage, "images/" + file.name);
+        try {
+            const uploadTask = uploadBytesResumable(storageRef, file);
+            uploadTask.on(
+                "state_changed",
+                null,
+                (error) => {
+                    onError(error);
+                },
+                () => {
+                    getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                        onSuccess();
+                        const image = {
+                            id: null,
+                            name: null,
+                            urlImage: url,
+                            priority: 0
+                        }
+                        const newListImage = [...product.images, image];
+                        setListImage(newListImage);
+                    });
+                }
+            );
+        } catch (error) {
+            onError(error);
+        }
+    };
     return (
-        <div style={{position: 'relative'}}>
+        <div>
             <div style={{
                 display: 'flex',
                 justifyContent: ' space-between'
@@ -172,18 +260,22 @@ const ProductComponent = () => {
                             style={{
                                 backgroundColor: "#00CC00",
                                 minHeight: 32
-                            }
-                            }> Thêm sản phẩm </Button>
+                            }}> Thêm sản phẩm </Button>
                 </div>
             </div>
             <Table
                 rowKey={record => record.id}
-                style={{
-                    minHeight: 600
-                }}
                 columns={columns}
                 dataSource={productList.content}
-                pagination={false} bordered/>
+                pagination={false}
+                bordered
+                style={{
+                    minHeight: 700
+                }}
+                scroll={{
+                    x: 950
+                }}
+            />
             <Pagination
                 current={params.page}
                 pageSize={params.size}
@@ -230,15 +322,48 @@ const ProductComponent = () => {
                     <Select
                         key={product.id + 1}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        defaultValue={isCreate ? 1 : product.type }
+                        defaultValue={isCreate ? 1 : product.type}
                         onChange={(e) => setProduct({...product, type: e})}
                         options={TYPE_OPTIONS}
                     />
+                    <Upload customRequest={handleUpload}>
+                        <Button icon={<UploadOutlined/>}>Upload</Button>
+                    </Upload>
                 </div>
-
+                {product.images &&
+                    product.images.map(item => (
+                         <div style={{position: 'relative', display: 'inline-block', margin: 10}} key={item.id + 1}>
+                            <Image src={item.urlImage}
+                                   style={{width: 135, height: 135, borderRadius: 10}}/>
+                            <DeleteOutlined
+                                style={{
+                                    position: 'absolute',
+                                    top: 5,
+                                    right: 2,
+                                    fontSize: 22,
+                                    color: 'red',
+                                    cursor: 'pointer',
+                                }}
+                                onClick={() => onDeleteImage(item.id)}
+                            />
+                             <CheckOutlined
+                                 style={{
+                                     position: 'absolute',
+                                     top: 5,
+                                     right: 30,
+                                     fontSize: 22,
+                                     color: '#00CC00',
+                                     cursor: 'pointer',
+                                 }}
+                                 onClick={() => onDeleteImage(item.id)}
+                             />
+                         </div>
+                    ))
+                }
             </Modal>
         </div>
 
     )
+
 }
 export default ProductComponent;

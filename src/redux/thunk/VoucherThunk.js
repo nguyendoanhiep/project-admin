@@ -25,6 +25,7 @@ export const addOrUpdateVoucher = (voucher) => async (dispatch) => {
     try {
         const response = await axios.post(domain + `/voucher/addOrUpdate`,voucher);
         await dispatch(addOrUpdate(response.data));
+        return response;
     } catch (error) {
         console.log(error);
     }

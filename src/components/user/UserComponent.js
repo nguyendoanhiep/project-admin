@@ -11,31 +11,31 @@ const UserComponent = () => {
             title: 'Username',
             dataIndex: 'username',
             key: 'username',
-            width: 180
+            width: 160
         },
         {
             title: 'Số điện thoại',
             dataIndex: 'numberPhone',
             key: 'numberPhone',
-            width: 140
+            width: 120
         },
         {
             title: 'Ngày khởi tạo',
             dataIndex: 'createDate',
             key: 'createDate',
-            width: 120
+            width: 110
         },
         {
             title: ' Ngày chỉnh sửa',
             dataIndex: 'modifiedDate',
             key: 'modifiedDate',
-            width: 120
+            width: 110
         },
         {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
-            width: 140,
+            width: 120,
             render: (text) => {
                 switch (text) {
                     case 1:
@@ -51,7 +51,7 @@ const UserComponent = () => {
             title: 'Roles',
             dataIndex: 'roles',
             key: 'roles',
-            width: 140,
+            width: 120,
             render: (listRoles) => (
                 <span>
             {listRoles.map((role, index) => (
@@ -59,13 +59,14 @@ const UserComponent = () => {
                     {role.name + " , "}
                 </span>
             ))}
-        </span>
+                </span>
             ),
         },
         {
             title: 'Action',
             dataIndex: '',
             key: 'x',
+            fixed: 'right',
             render: (text, record) => (
                 <span>
                  <Button style={{marginLeft: 5, width: 70}} type="primary"
@@ -74,7 +75,7 @@ const UserComponent = () => {
                          onClick={() => handleDelete(record)} danger>Delete</Button>
                 </span>
             ),
-            width: 180
+            width: 150
         },
     ];
 
@@ -97,7 +98,7 @@ const UserComponent = () => {
         status: 0
     });
     const userList = useSelector((state) => state.user.data);
-    const isSaveData = useSelector((state) => state.user.user)
+    const [isSaveSuccess, setIsSaveSuccess] = useState(false);
 
     const openAddOrUpdate = (record) => {
         setConfirmPassword("")
@@ -125,7 +126,10 @@ const UserComponent = () => {
         dispatch(getAllUser(params.page, params.size, value, params.status))
     };
     const handleAddOrUpdate = async () => {
-        await dispatch(registerUser(user))
+        const res = await dispatch(registerUser(user))
+        if (res) {
+            setIsSaveSuccess(res)
+        }
     }
 
     const handlePageChange = (e) => {
@@ -144,7 +148,7 @@ const UserComponent = () => {
     useEffect(() => {
         setIsAddOrUpdate(false);
         dispatch(getAllUser(params.page, params.size, params.search, params.status))
-    }, [isSaveData])
+    }, [isSaveSuccess])
     return (
         <div style={{position: 'relative'}}>
             <div style={{
@@ -178,12 +182,17 @@ const UserComponent = () => {
             </div>
             <Table
                 rowKey={record => record.id}
+                columns={columns}
+                dataSource={userList.content}
+                pagination={false}
+                bordered
                 style={{
                     minHeight: 600
                 }}
-                columns={columns}
-                dataSource={userList.content}
-                pagination={false} bordered/>
+                scroll={{
+                    x: 1100
+                }}
+            />
             <Pagination
                 current={params.page}
                 pageSize={params.size}
@@ -200,6 +209,7 @@ const UserComponent = () => {
                    onCancel={closeAddOrUpdate}>
                 <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
                     <Input
+                        disabled={user.id}
                         style={{width: 350, marginTop: 10, marginBottom: 10}}
                         type="text"
                         placeholder="Tên tài khoản"
@@ -213,28 +223,30 @@ const UserComponent = () => {
                         value={user.numberPhone || ''}
                         onChange={(e) => setUser({...user, numberPhone: e.target.value})}
                     />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="password"
-                        placeholder="Password"
-                        value={user.password || ''}
-                        onChange={(e) => setUser({...user, password: e.target.value})}
-                    />
-                    {
-                        isCreate && <Input
-                            style={{width: 350, marginTop: 10, marginBottom: 10}}
-                            type="password"
-                            placeholder="Comfirm Password"
-                            value={confirmPassword || ''}
-                            onChange={(e) => {
-                                setConfirmPassword(e.target.value)
-                                handleConfirmPasswordChange(e.target.value)
-                            }}
-                        />
+                    {isCreate &&
+                        <>
+                            <Input
+                                style={{width: 350, marginTop: 10, marginBottom: 10}}
+                                type="password"
+                                placeholder="Password"
+                                value={user.password || ''}
+                                onChange={(e) => setUser({...user, password: e.target.value})}
+                            />
+                            <Input
+                                style={{width: 350, marginTop: 10, marginBottom: 10}}
+                                type="password"
+                                placeholder="Comfirm Password"
+                                value={confirmPassword || ''}
+                                onChange={(e) => {
+                                    setConfirmPassword(e.target.value)
+                                    handleConfirmPasswordChange(e.target.value)
+                                }}
+                            />
+                            {!passwordMatch && (
+                                <p style={{color: 'red'}}>Mật khẩu và xác nhận mật khẩu không khớp.</p>
+                            )}
+                        </>
                     }
-                    {!passwordMatch && (
-                        <p style={{color: 'red'}}>Mật khẩu và xác nhận mật khẩu không khớp.</p>
-                    )}
                     <Select
                         key={user.id}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
