@@ -1,11 +1,18 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
-import {addOrUpdateProduct, getAllProduct} from "../../redux/thunk/ProductThuck";
+import {
+    addOrUpdateProduct,
+    deleteImageOfProduct,
+    getAllProduct,
+    getImageByProductId, setPriorityImage
+} from "../../redux/thunk/ProductThuck";
 import {Image, Button, Input, Modal, Pagination, Select, Table, Upload} from 'antd';
 import {toast} from "react-toastify";
-import {CheckOutlined, CloseCircleOutlined, DeleteOutlined, PlusOutlined, UploadOutlined} from "@ant-design/icons";
+import {CheckOutlined, DeleteOutlined, UploadOutlined} from "@ant-design/icons";
 import {storage} from "../../env/FirebaseConfig";
 import {ref, getDownloadURL, uploadBytesResumable} from 'firebase/storage'
+import {clearImages} from "../../redux/slice/ProductSlince";
+
 const {TextArea, Search} = Input;
 const ProductComponent = () => {
     const columns = [
@@ -121,8 +128,6 @@ const ProductComponent = () => {
     const cartItems = JSON.parse(sessionStorage.getItem("cartItems")) || []
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isSaveSuccess, setIsSaveSuccess] = useState(false);
-    const [listImage, setListImage] = useState([])
-
     const [isCreate, setIsCreate] = useState(false);
     const [params, setParams] = useState({
         page: 1,
@@ -132,20 +137,8 @@ const ProductComponent = () => {
         type: 0
     });
     const productList = useSelector((state) => state.product.data);
+    const images = useSelector((state) => state.product.images);
 
-    const openAddOrUpdate = (record) => {
-        setIsAddOrUpdate(true)
-        if (record) {
-            setIsCreate(false)
-            setProduct(record);
-        } else {
-            setIsCreate(true)
-            setProduct({
-                status: 1,
-                type: 2
-            });
-        }
-    };
     const addToCart = (productOfCart) => {
         const product = cartItems && cartItems.find(item => item.id === productOfCart.id)
         if (product) {
@@ -161,10 +154,26 @@ const ProductComponent = () => {
             autoClose: 2000,
         });
     }
+
+    const openAddOrUpdate = (record) => {
+        setIsAddOrUpdate(true)
+        if (record) {
+            dispatch(getImageByProductId(record.id))
+            setIsCreate(false)
+            setProduct(record);
+        } else {
+            dispatch(clearImages())
+            setIsCreate(true)
+            setProduct({
+                status: 1,
+                type: 2
+            });
+        }
+    };
+
     const closeAddOrUpdate = () => {
         setIsAddOrUpdate(false)
         setProduct({})
-        setListImage([])
     }
     const handleDelete = (record) => {
     };
@@ -173,14 +182,37 @@ const ProductComponent = () => {
         dispatch(getAllProduct(params.page, params.size, value, params.status, params.type))
     };
     const handleAddOrUpdate = async () => {
-
-        const res = await dispatch(addOrUpdateProduct(product))
-        if (res) {
+        const data = {
+            ...product, images: images && images.data
+        }
+        const res = await dispatch(addOrUpdateProduct(data))
+        console.log(res)
+        if (res.data.code === 200) {
             setIsSaveSuccess(res)
         }
     }
-    const onDeleteImage = (id) => {
-
+    const onDeleteImage = async (id) => {
+        const res = await dispatch(deleteImageOfProduct(id))
+        if (res.data.code === 200) {
+            toast.success('Xóa ảnh thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            dispatch(getImageByProductId(product.id))
+        }
+    }
+    const onSetPriorityImage = async (id) => {
+        const res = await dispatch(setPriorityImage(id, product.id))
+        if (res.data.code === 200) {
+            toast.success('Chọn ảnh thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            dispatch(getImageByProductId(product.id))
+            dispatch(getAllProduct(params.page, params.size, params.name, params.status, params.type))
+        }
     }
 
     const handlePageChange = (e) => {
@@ -193,12 +225,6 @@ const ProductComponent = () => {
         dispatch(getAllProduct(params.page, params.size, params.name, params.status, params.type))
     }, [isSaveSuccess])
 
-    useEffect(()=>{
-        setProduct({
-            ...product,
-            images: listImage
-        });
-    },[listImage])
     const handleUpload = async ({file, onSuccess, onError}) => {
         const storageRef = ref(storage, "images/" + file.name);
         try {
@@ -210,7 +236,7 @@ const ProductComponent = () => {
                     onError(error);
                 },
                 () => {
-                    getDownloadURL(uploadTask.snapshot.ref).then((url) => {
+                    getDownloadURL(uploadTask.snapshot.ref).then(async (url) => {
                         onSuccess();
                         const image = {
                             id: null,
@@ -218,8 +244,19 @@ const ProductComponent = () => {
                             urlImage: url,
                             priority: 0
                         }
-                        const newListImage = [...product.images, image];
-                        setListImage(newListImage);
+                        const updatedImages = Array.isArray(images && images.data) ? [...images.data, image] : [image];
+                        const data = {
+                            ...product, images: updatedImages
+                        }
+                        const res = await dispatch(addOrUpdateProduct(data))
+                        if (res.data.code === 200) {
+                            toast.success('Thêm ảnh thành công!', {
+                                className: 'my-toast',
+                                position: "top-center",
+                                autoClose: 2000,
+                            });
+                            dispatch(getImageByProductId(product.id))
+                        }
                     });
                 }
             );
@@ -255,7 +292,7 @@ const ProductComponent = () => {
                     />
                 </div>
                 <div>
-                    <Button onClick={() => openAddOrUpdate()}
+                    <Button onClick={() => openAddOrUpdate(null)}
                             type="primary"
                             style={{
                                 backgroundColor: "#00CC00",
@@ -326,39 +363,43 @@ const ProductComponent = () => {
                         onChange={(e) => setProduct({...product, type: e})}
                         options={TYPE_OPTIONS}
                     />
-                    <Upload customRequest={handleUpload}>
+                    <Upload customRequest={handleUpload} showUploadList={false}>
                         <Button icon={<UploadOutlined/>}>Upload</Button>
                     </Upload>
                 </div>
-                {product.images &&
-                    product.images.map(item => (
-                         <div style={{position: 'relative', display: 'inline-block', margin: 10}} key={item.id + 1}>
-                            <Image src={item.urlImage}
-                                   style={{width: 135, height: 135, borderRadius: 10}}/>
-                            <DeleteOutlined
-                                style={{
-                                    position: 'absolute',
-                                    top: 5,
-                                    right: 2,
-                                    fontSize: 22,
-                                    color: 'red',
-                                    cursor: 'pointer',
-                                }}
-                                onClick={() => onDeleteImage(item.id)}
-                            />
-                             <CheckOutlined
-                                 style={{
-                                     position: 'absolute',
-                                     top: 5,
-                                     right: 30,
-                                     fontSize: 22,
-                                     color: '#00CC00',
-                                     cursor: 'pointer',
-                                 }}
-                                 onClick={() => onDeleteImage(item.id)}
-                             />
-                         </div>
-                    ))
+                {images && images.data && images.data.map(item => (
+                    <div style={{position: 'relative', display: 'inline-block', margin: 10}} key={item.id + 1}>
+                        <Image src={item.urlImage}
+                               style={{
+                                   width: 135,
+                                   height: 135,
+                                   borderRadius: 10,
+                                   border: item.priority === 1 ? '2px solid #00CC00' : ''
+                               }}/>
+                        <DeleteOutlined
+                            style={{
+                                position: 'absolute',
+                                top: 5,
+                                right: 2,
+                                fontSize: 22,
+                                color: 'red',
+                                cursor: 'pointer',
+                            }}
+                            onClick={() => onDeleteImage(item.id)}
+                        />
+                        <CheckOutlined
+                            style={{
+                                position: 'absolute',
+                                top: 5,
+                                right: 30,
+                                fontSize: 22,
+                                color: '#00CC00',
+                                cursor: 'pointer',
+                            }}
+                            onClick={() => onSetPriorityImage(item.id)}
+                        />
+                    </div>
+                ))
                 }
             </Modal>
         </div>

@@ -41,7 +41,7 @@ const CustomerComponent = () => {
             key: 'image.urlImage',
             width: 100,
             render:(text) => {
-                return <Avatar style={{width:70 , height : 70}} src={text.image.urlImage}/>
+                return <Avatar style={{width:70 , height : 70}} src={text.image && text.image.urlImage}/>
             }
         },
         {
@@ -122,7 +122,7 @@ const CustomerComponent = () => {
     };
     const handleAddOrUpdate = async () => {
         const res = dispatch(addOrUpdateCustomer(customer))
-        if(res){
+        if (res.status === 200) {
             setIsSaveSuccess(res)
         }
     }

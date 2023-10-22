@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {Button, Input, Modal, Pagination, Select, Table} from 'antd';
 import {getAllUser, registerUser} from "../../redux/thunk/UserThunk";
-import {logout} from "../../redux/slice/UserSlince";
 
 const {Search} = Input;
 const UserComponent = () => {

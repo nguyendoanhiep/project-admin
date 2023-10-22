@@ -1,4 +1,4 @@
-import {Button, Input, Modal, Pagination, Select, Table} from "antd";
+import {Button, Input, Pagination, Select, Table} from "antd";
 import {useDispatch, useSelector} from "react-redux";
 import React, {useEffect, useState} from "react";
 import {getAllOrders} from "../../redux/thunk/OrdersThunk";
