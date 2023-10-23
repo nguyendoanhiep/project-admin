@@ -186,7 +186,6 @@ const ProductComponent = () => {
             ...product, images: images && images.data
         }
         const res = await dispatch(addOrUpdateProduct(data))
-        console.log(res)
         if (res.data.code === 200) {
             setIsSaveSuccess(res)
         }
@@ -200,6 +199,7 @@ const ProductComponent = () => {
                 autoClose: 2000,
             });
             dispatch(getImageByProductId(product.id))
+            dispatch(getAllProduct(params.page, params.size, params.name, params.status, params.type))
         }
     }
     const onSetPriorityImage = async (id) => {

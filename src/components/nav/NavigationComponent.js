@@ -30,10 +30,10 @@ const NavigationComponent = () => {
             getItem('Quản lý User', '/user'),
             getItem('Quản lý Customer', '/customer'),
         ]),
-        getItem('Quản lý sản phẩm', '/product'),
-        getItem('Quản lý đơn hàng', '/orders'),
-        getItem('Giỏ hàng', '/cart'),
         getItem('Quản lý voucher', '/voucher'),
+        getItem('Quản lý sản phẩm', '/product'),
+        getItem('Giỏ hàng', '/cart'),
+        getItem('Quản lý đơn hàng', '/orders'),
         getItem('Báo cáo doanh thu', '11', null, [
             getItem('Doanh thu tháng', '12'),
             getItem('Doanh thu quý', '13'),

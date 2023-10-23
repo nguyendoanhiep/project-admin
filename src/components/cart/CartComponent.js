@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import {Button, Form, Image, Input, Select, Table} from 'antd';
-import {UserOutlined} from "@ant-design/icons";
+import {AutoComplete, Button, Form, Image, Select, Table} from 'antd';
 import {toast} from "react-toastify";
-import {useDispatch} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {addOrUpdateOrders} from "../../redux/thunk/OrdersThunk";
+import {findVoucherByNumberPhone} from "../../redux/thunk/VoucherThunk";
+import {getAllCustomer} from "../../redux/thunk/CustomerThunk";
 
 const CartComponent = () => {
     const columns = [
@@ -68,17 +69,19 @@ const CartComponent = () => {
             fixed: 'right',
             render: (record) => (
                 <span>
-                 <Button style={{marginLeft: 5, width: 40 ,  backgroundColor: "#00CC00"}} type="primary"
+                 <Button style={{marginLeft: 5, width: 40, backgroundColor: "#00CC00"}} type="primary"
                          onClick={() => addToCart(record)}>+</Button>
-                 <Button style={{marginLeft: 5, width: 40 , backgroundColor:'#FFA500'}} type="primary"
+                 <Button style={{marginLeft: 5, width: 40, backgroundColor: '#FFA500'}} type="primary"
                          onClick={() => removeToCart(record)}>-</Button>
                 </span>
             ),
-            width: 120
+            width: 110
         },
     ];
     const dispatch = useDispatch();
     const cartItems = JSON.parse(sessionStorage.getItem("cartItems")) || [];
+    const vouchersByNumberPhone = useSelector((state => state.voucher.vouchersByNumberPhone.data))
+    const customers = useSelector((state => state.customer.data.content))
     const [isLoad, setIsLoad] = useState(false)
     const [originalTotalValue, setOriginalTotalValue] = useState()
     const [voucher, setVoucher] = useState({})
@@ -142,9 +145,15 @@ const CartComponent = () => {
         values.discountAmount = voucher.value
         values.totalValue = totalValue
         values = {...values, ordersProducts: ordersProducts};
-        const isSaveData = await dispatch(addOrUpdateOrders(values))
-        if(isSaveData){
+        const res = await dispatch(addOrUpdateOrders(values))
+        if (res.data.code === 200) {
             toast.success('Tạo đơn hàng thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+        } else {
+            toast.error('Tạo đơn hàng thất bại!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -159,7 +168,8 @@ const CartComponent = () => {
         }, 0)
         setOriginalTotalValue(total)
         setTotalValue(total - (voucher.value || 0))
-    }, [isLoad])
+    }, [isLoad, voucher])
+
     return (
         <div>
             <div style={{
@@ -178,34 +188,47 @@ const CartComponent = () => {
                 }}
             />
             <div className="section-content  p-5 "
-                 style={{maxWidth: 350, height: 400}}>
+                 style={{maxWidth: 400, height: 400}}>
                 <div className="heading-section text-center">
                     <Form
-                        name="loginForm"
+                        name="cart"
                         onFinish={onSubmit}
                         className="form"
                     >
                         <Form.Item
                             name="numberPhone"
                         >
-                            <Input
-                                style={{height: '35px'}}
-                                prefix={<UserOutlined className="site-form-item-icon"/>}
-                                placeholder="Nhập số điện thoại khách hàng"
+                            <AutoComplete
+                                options={customers && customers.map(customer => ({
+                                    value: customer.numberPhone,
+                                    label: customer.name + ' : ' + customer.numberPhone
+                                }))}
+                                onSearch={(e) => {
+                                    setVoucher({})
+                                    dispatch(getAllCustomer(1, 10, e, 1))
+                                }}
+                                onChange={(e) => dispatch(findVoucherByNumberPhone(e))}
+                                placeholder="Nhập số điện thoại"
                             />
                         </Form.Item>
-                        <Form.Item
-                        >
+                        <Form.Item>
                             <Select
                                 placeholder="Select Voucher"
-                            >
+                                value={voucher.name}
+                                onChange={(e) => setVoucher(vouchersByNumberPhone.find(value => value.id === e))}
+                                options={vouchersByNumberPhone && vouchersByNumberPhone.map(voucher => ({
+                                    value: voucher.id,
+                                    label: voucher.name + ' : ' + voucher.value + ' VND '
+                                }))}>
                             </Select>
                         </Form.Item>
                         <Form.Item
                             name="totalValue"
                         >
                             <div>
-                                Tổng giá trị đơn hàng : {originalTotalValue}
+                                <h6> Tổng giá trị đơn hàng : {originalTotalValue} VND</h6>
+                                <h6> Số tiền được giảm : {voucher.value} VND</h6>
+                                <h6> Số tiền cần thanh toán : {totalValue} VND</h6>
                             </div>
                         </Form.Item>
 
@@ -213,7 +236,7 @@ const CartComponent = () => {
                             <Button type="primary" htmlType="submit"
                                     className="login-form-button"
                                     style={{width: '120px', height: '40px'}}>
-                               Tạo đơn hàng
+                                Tạo đơn hàng
                             </Button>
                         </Form.Item>
                     </Form>

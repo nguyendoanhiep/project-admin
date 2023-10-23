@@ -116,7 +116,7 @@ const VoucherComponent = () => {
     };
     const handleAddOrUpdate = () => {
         const res = dispatch(addOrUpdateVoucher(voucher))
-        if(res){
+        if(res.data.code===200){
             setIsSaveSuccess(res)
         }
     }
