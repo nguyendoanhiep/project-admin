@@ -2,16 +2,16 @@ import {createSlice} from "@reduxjs/toolkit";
 
 const productSlice = createSlice({
     name: 'product',
-    initialState: {isGetData: false, data: {} , images: {} },
+    initialState: {isGetData: false, products: {},  images: []},
     reducers: {
         getAll: (state, action) => {
             state.isGetData = true;
-            state.data = action.payload.data;
+            state.products = action.payload.data;
         },
-        addOrUpdate : (state,action) => {
+        addOrUpdate: (state, action) => {
         },
         getAllImage: (state, action) => {
-            state.images = action.payload;
+            state.images = action.payload.data;
         },
         clearImages: (state) => {
             state.images = null;
@@ -19,6 +19,6 @@ const productSlice = createSlice({
     },
 });
 
-export const {getAll, addOrUpdate,getAllImage,clearImages} = productSlice.actions;
+export const {getAll, addOrUpdate, getAllImage, clearImages} = productSlice.actions;
 
 export default productSlice.reducer;

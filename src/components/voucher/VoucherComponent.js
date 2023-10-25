@@ -3,7 +3,7 @@ import {useDispatch, useSelector} from "react-redux";
 import React, {useEffect, useState} from "react";
 import {addOrUpdateVoucher, getAllVoucher} from "../../redux/thunk/VoucherThunk";
 import moment from "moment";
-
+import {toast} from "react-toastify";
 const {Search} = Input;
 
 const VoucherComponent = () => {
@@ -46,13 +46,13 @@ const VoucherComponent = () => {
             title: 'Ngày có hiệu lực',
             dataIndex: 'voucherStartDate',
             key: 'voucherStartDate',
-            width: 120,
+            width: 130,
         },
         {
-            title: 'Ngày có hết hạn',
+            title: 'Ngày hết hạn',
             dataIndex: 'voucherExpirationDate',
             key: 'voucherExpirationDate',
-            width: 120,
+            width: 130,
         },
         {
             title: 'Action',
@@ -79,19 +79,16 @@ const VoucherComponent = () => {
 
     const dispatch = useDispatch();
     const [voucher, setVoucher] = useState({})
+    const [isLoading, setIsLoading] = useState(false)
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
-    const [isSaveSuccess , setIsSaveSuccess] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
     const [params, setParams] = useState({
         page: 1,
         size: 10,
-        name: '',
-        code: '',
+        search: '',
         status: 0,
-        ascOrDesc: ''
     });
-    const voucherList = useSelector((state) => state.voucher.data);
-
+    const voucherList = useSelector((state) => state.voucher.vouchers);
     const openAddOrUpdate = (record) => {
         setIsAddOrUpdate(true)
         if (record) {
@@ -110,26 +107,50 @@ const VoucherComponent = () => {
     }
     const handleDelete = (record) => {
     };
-    const onSearch = async (value) => {
-        await setParams({...params, name: value})
-        await dispatch(getAllVoucher(params.page, params.size, value, params.code, params.status, params.ascOrDesc))
+    const onSearch = (value) => {
+        const newParams = {...params, search : value}
+        setParams(newParams)
+        dispatch(getAllVoucher(newParams))
     };
-    const handleAddOrUpdate = () => {
-        const res = dispatch(addOrUpdateVoucher(voucher))
-        if(res.data.code===200){
-            setIsSaveSuccess(res)
+    const handleAddOrUpdate = async () => {
+      const res = await dispatch(addOrUpdateVoucher(voucher))
+        if (res.code === 200 && isCreate) {
+            toast.success('Thêm Voucher thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            setIsAddOrUpdate(false);
+            setIsLoading(!isLoading)
+        }
+        if (res.code === 200 && !isCreate) {
+            toast.success('Sửa Voucher thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            setIsAddOrUpdate(false);
+            setIsLoading(!isLoading)
+        }
+        if (res.code === 400) {
+            toast.error('Thêm Voucher thất bại!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
         }
     }
 
     const handlePageChange = (e) => {
-        setParams({...params, page: e})
-        dispatch(getAllVoucher(e, params.size, params.name, params.code, params.status, params.ascOrDesc))
+        const newParams = {...params, page: e}
+        setParams(newParams)
+        dispatch(getAllVoucher(newParams))
 
     }
     useEffect(() => {
-        setIsAddOrUpdate(false);
-        dispatch(getAllVoucher(params.page, params.size, params.name, params.code, params.status, params.ascOrDesc))
-    }, [isSaveSuccess])
+        dispatch(getAllVoucher(params))
+    }, [isLoading])
+
     return (
         <div style={{position: 'relative'}}>
             <div style={{

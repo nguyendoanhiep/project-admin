@@ -2,10 +2,9 @@ import {createSlice} from '@reduxjs/toolkit';
 
 const userSlice = createSlice({
     name: 'user',
-    initialState: {isLoggedIn: false, user: {}, data: {}},
+    initialState: {isLoggedIn: false, users: {}},
     reducers: {
         register: (state, action) => {
-            state.user = action.payload.data;
         },
         login: (state, action) => {
             state.isLoggedIn = true;
@@ -19,7 +18,7 @@ const userSlice = createSlice({
             localStorage.removeItem('Token');
         },
         getALl: (state, action) => {
-            state.data = action.payload.data;
+            state.users = action.payload.data;
         },
     },
 });

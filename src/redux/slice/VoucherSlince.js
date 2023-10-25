@@ -2,16 +2,16 @@ import {createSlice} from "@reduxjs/toolkit";
 
 const voucherSlice = createSlice({
     name: 'voucher',
-    initialState: {isGetData: false, data: {} , vouchersByNumberPhone : {}},
+    initialState: {isGetData: false, vouchers: {}  , vouchersByNumberPhone : []},
     reducers: {
         getAll: (state, action) => {
             state.isGetData = true;
-            state.data = action.payload.data;
+            state.vouchers = action.payload.data;
         },
         addOrUpdate : (state,action) => {
         },
         findByNumberPhone : (state,action) => {
-            state.vouchersByNumberPhone = action.payload
+            state.vouchersByNumberPhone = action.payload.data
         }
     },
 });

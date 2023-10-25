@@ -4,7 +4,8 @@ import {
     addOrUpdateProduct,
     deleteImageOfProduct,
     getAllProduct,
-    getImageByProductId, setPriorityImage
+    getImageByProductId,
+    setPriorityImage
 } from "../../redux/thunk/ProductThuck";
 import {Image, Button, Input, Modal, Pagination, Select, Table, Upload} from 'antd';
 import {toast} from "react-toastify";
@@ -127,8 +128,8 @@ const ProductComponent = () => {
     const [product, setProduct] = useState({})
     const cartItems = JSON.parse(sessionStorage.getItem("cartItems")) || []
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
-    const [isSaveSuccess, setIsSaveSuccess] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
+    const [isLoading, setIsLoading] = useState(false)
     const [params, setParams] = useState({
         page: 1,
         size: 5,
@@ -136,7 +137,7 @@ const ProductComponent = () => {
         status: 0,
         type: 0
     });
-    const productList = useSelector((state) => state.product.data);
+    const productList = useSelector((state) => state.product.products);
     const images = useSelector((state) => state.product.images);
 
     const addToCart = (productOfCart) => {
@@ -178,16 +179,39 @@ const ProductComponent = () => {
     const handleDelete = (record) => {
     };
     const onSearch = async (value) => {
-        setParams({...params, name: value})
-        dispatch(getAllProduct(params.page, params.size, value, params.status, params.type))
+        const newParams = {...params, name: value}
+        setParams(newParams)
+        dispatch(getAllProduct(newParams))
     };
     const handleAddOrUpdate = async () => {
         const data = {
-            ...product, images: images && images.data
+            ...product, images: images && images
         }
         const res = await dispatch(addOrUpdateProduct(data))
-        if (res.data.code === 200) {
-            setIsSaveSuccess(res)
+        if (res.code === 200 && isCreate) {
+            toast.success('Thêm Sản phẩm thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            setIsAddOrUpdate(false);
+            setIsLoading(!isLoading)
+        }
+        if (res.code === 200 && !isCreate) {
+            toast.success('Sửa Sản phẩm thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            setIsAddOrUpdate(false);
+            setIsLoading(!isLoading)
+        }
+        if (res.code === 400) {
+            toast.error('Thêm Sản phẩm thất bại!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
         }
     }
     const onDeleteImage = async (id) => {
@@ -199,7 +223,7 @@ const ProductComponent = () => {
                 autoClose: 2000,
             });
             dispatch(getImageByProductId(product.id))
-            dispatch(getAllProduct(params.page, params.size, params.name, params.status, params.type))
+            setIsLoading(!isLoading)
         }
     }
     const onSetPriorityImage = async (id) => {
@@ -211,19 +235,20 @@ const ProductComponent = () => {
                 autoClose: 2000,
             });
             dispatch(getImageByProductId(product.id))
-            dispatch(getAllProduct(params.page, params.size, params.name, params.status, params.type))
+            setIsLoading(!isLoading)
         }
     }
 
     const handlePageChange = (e) => {
-        setParams({...params, page: e})
-        dispatch(getAllProduct(e, params.size, params.name, params.status, params.type))
+        const newParams = {...params, page: e}
+        setParams(newParams)
+        dispatch(getAllProduct(newParams))
 
     }
     useEffect(() => {
-        setIsAddOrUpdate(false);
-        dispatch(getAllProduct(params.page, params.size, params.name, params.status, params.type))
-    }, [isSaveSuccess])
+        dispatch(getAllProduct(params))
+    }, [isLoading])
+
 
     const handleUpload = async ({file, onSuccess, onError}) => {
         const storageRef = ref(storage, "images/" + file.name);
@@ -244,12 +269,11 @@ const ProductComponent = () => {
                             urlImage: url,
                             priority: 0
                         }
-                        const updatedImages = Array.isArray(images && images.data) ? [...images.data, image] : [image];
                         const data = {
-                            ...product, images: updatedImages
+                            ...product, images: images ? [...images, image] : [image]
                         }
                         const res = await dispatch(addOrUpdateProduct(data))
-                        if (res.data.code === 200) {
+                        if (res.code === 200) {
                             toast.success('Thêm ảnh thành công!', {
                                 className: 'my-toast',
                                 position: "top-center",
@@ -367,7 +391,7 @@ const ProductComponent = () => {
                         <Button icon={<UploadOutlined/>}>Upload</Button>
                     </Upload>
                 </div>
-                {images && images.data && images.data.map(item => (
+                {images && images.map(item => (
                     <div style={{position: 'relative', display: 'inline-block', margin: 10}} key={item.id + 1}>
                         <Image src={item.urlImage}
                                style={{

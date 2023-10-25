@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {Avatar, Button, Input, Modal, Pagination, Select, Table} from 'antd';
 import {addOrUpdateCustomer, getAllCustomer} from "../../redux/thunk/CustomerThunk";
+import {toast} from "react-toastify";
 
 const {Search} = Input;
 const CustomerComponent = () => {
@@ -40,8 +41,8 @@ const CustomerComponent = () => {
             title: ' Ảnh đại diện',
             key: 'image.urlImage',
             width: 100,
-            render:(text) => {
-                return <Avatar style={{width:70 , height : 70}} src={text.image && text.image.urlImage}/>
+            render: (text) => {
+                return <Avatar style={{width: 70, height: 70}} src={text.image && text.image.urlImage}/>
             }
         },
         {
@@ -82,19 +83,19 @@ const CustomerComponent = () => {
         {value: 2, label: 'Không hoạt động'},
         {value: 3, label: 'Không xác định'},
     ];
-
+    const customerList = useSelector((state) => state.customer.customers);
     const dispatch = useDispatch();
     const [customer, setCustomer] = useState({})
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
+    const [isLoading, setIsLoading] = useState(false)
     const [params, setParams] = useState({
         page: 1,
         size: 10,
         search: '',
         status: 0
     });
-    const customerList = useSelector((state) => state.customer.data);
-    const [isSaveSuccess , setIsSaveSuccess] = useState(false);
+
 
     const openAddOrUpdate = (record) => {
         setIsAddOrUpdate(true)
@@ -107,8 +108,6 @@ const CustomerComponent = () => {
                 status: 1
             });
         }
-
-
     };
     const closeAddOrUpdate = () => {
         setIsAddOrUpdate(false)
@@ -117,25 +116,49 @@ const CustomerComponent = () => {
     const handleDelete = (record) => {
     };
     const onSearch = async (value) => {
-        setParams({...params, search: value})
-        dispatch(getAllCustomer(params.page, params.size, value, params.status))
+        const newParams = {...params, search: value}
+        setParams(newParams)
+        dispatch(getAllCustomer(newParams))
     };
     const handleAddOrUpdate = async () => {
-        const res = dispatch(addOrUpdateCustomer(customer))
-        if (res.status === 200) {
-            setIsSaveSuccess(res)
+        const res = await dispatch(addOrUpdateCustomer(customer))
+        if (res.code === 200 && isCreate) {
+            toast.success('Thêm Khách hàng thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            setIsAddOrUpdate(false);
+            setIsLoading(!isLoading)
+        }
+        if (res.code === 200 && !isCreate) {
+            toast.success('Sửa Khách hàng thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            setIsAddOrUpdate(false);
+            setIsLoading(!isLoading)
+        }
+        if (res.code === 400) {
+            toast.error('Thêm Khách hàng thất bại!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
         }
     }
 
     const handlePageChange = (e) => {
-        setParams({...params, page: e})
-        dispatch(getAllCustomer(e, params.size, params.search, params.status))
+        const newParams = {...params, page: e}
+        setParams(newParams)
+        dispatch(getAllCustomer(newParams))
 
     }
     useEffect(() => {
-        setIsAddOrUpdate(false);
-        dispatch(getAllCustomer(params.page, params.size, params.search, params.status))
-    }, [isSaveSuccess])
+        dispatch(getAllCustomer(params))
+    }, [isLoading])
+
     return (
         <div>
             <div style={{display: 'flex', justifyContent: ' space-between'}}>
@@ -171,10 +194,10 @@ const CustomerComponent = () => {
                 pagination={false}
                 bordered
                 style={{
-                    minHeight:600
+                    minHeight: 600
                 }}
                 scroll={{
-                    x:1100
+                    x: 1100
                 }}
             />
             <Pagination

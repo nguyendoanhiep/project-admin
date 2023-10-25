@@ -79,15 +79,16 @@ const CartComponent = () => {
         },
     ];
     const dispatch = useDispatch();
-    const cartItems = JSON.parse(sessionStorage.getItem("cartItems")) || [];
-    const vouchersByNumberPhone = useSelector((state => state.voucher.vouchersByNumberPhone.data))
-    const customers = useSelector((state => state.customer.data.content))
-    const [isLoad, setIsLoad] = useState(false)
+    const cartItems = JSON.parse(sessionStorage.getItem("cartItems"));
+    const [isLoading, setIsLoading] = useState(false)
     const [originalTotalValue, setOriginalTotalValue] = useState()
     const [voucher, setVoucher] = useState({})
     const [totalValue, setTotalValue] = useState(0)
+
+    const vouchersByNumberPhone = useSelector((state => state.voucher.vouchersByNumberPhone))
+    const customers = useSelector((state => state.customer.customers.content))
+
     const addToCart = (productOfCart) => {
-        setIsLoad(!isLoad)
         const product = cartItems.find(item => item.id === productOfCart.id)
         if (product) {
             product.quantity += 1;
@@ -101,35 +102,30 @@ const CartComponent = () => {
             position: "top-center",
             autoClose: 2000,
         });
+        setIsLoading(!isLoading)
     }
     const removeToCart = (productOfCart) => {
-        setIsLoad(cartItems)
         const product = cartItems.find(item => item.id === productOfCart.id)
-        if (product) {
-            if (product.quantity == 1) {
-                const newCart = cartItems.filter(item => item.id !== product.id);
-                console.log(newCart)
-                sessionStorage.setItem('cartItems', JSON.stringify(newCart));
-                return toast.error('Xóa sản phẩm thành công!', {
-                    className: 'my-toast',
-                    position: "top-center",
-                    autoClose: 2000,
-                    limit: 4
-                });
-            }
-            product.quantity -= 1;
-            product.totalPrice -= productOfCart.price;
-            toast.warning('Giảm số lượng thành công!', {
+        if (product.quantity === 1) {
+            const newCart = cartItems.filter(item => item.id !== product.id);
+            sessionStorage.setItem('cartItems', JSON.stringify(newCart));
+            setIsLoading(!isLoading)
+            return toast.error('Xóa sản phẩm thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
+                limit: 4
             });
-        } else {
-            cartItems.push({...productOfCart, quantity: 1, totalPrice: productOfCart.price})
         }
+        product.quantity -= 1;
+        product.totalPrice -= productOfCart.price;
+        toast.warning('Giảm số lượng thành công!', {
+            className: 'my-toast',
+            position: "top-center",
+            autoClose: 2000,
+        });
         sessionStorage.setItem('cartItems', JSON.stringify(cartItems));
-
-
+        setIsLoading(!isLoading)
     }
     const onSubmit = async (values) => {
         const ordersProducts = cartItems.map(item => {
@@ -145,30 +141,32 @@ const CartComponent = () => {
         values.discountAmount = voucher.value
         values.totalValue = totalValue
         values = {...values, ordersProducts: ordersProducts};
-        const res = await dispatch(addOrUpdateOrders(values))
-        if (res.data.code === 200) {
-            toast.success('Tạo đơn hàng thành công!', {
-                className: 'my-toast',
-                position: "top-center",
-                autoClose: 2000,
-            });
-        } else {
-            toast.error('Tạo đơn hàng thất bại!', {
+        const res = dispatch(addOrUpdateOrders(values))
+        if (res.code === 200) {
+            toast.success('Thêm Đơn hàng thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
             });
             sessionStorage.removeItem("cartItems");
-            setIsLoad(!isLoad)
+            setIsLoading(!!isLoading)
+        }
+        if (res.code === 400) {
+            toast.error('Thêm Đơn hàng thất bại!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
         }
     };
+
     useEffect(() => {
         let total = cartItems && cartItems.reduce((accumulator, item) => {
             return accumulator + item.totalPrice;
         }, 0)
         setOriginalTotalValue(total)
         setTotalValue(total - (voucher.value || 0))
-    }, [isLoad, voucher])
+    }, [isLoading, voucher])
 
     return (
         <div>
@@ -204,10 +202,18 @@ const CartComponent = () => {
                                     label: customer.name + ' : ' + customer.numberPhone
                                 }))}
                                 onSearch={(e) => {
-                                    setVoucher({})
-                                    dispatch(getAllCustomer(1, 10, e, 1))
+                                    dispatch(getAllCustomer({
+                                        page: 1,
+                                        size: 10,
+                                        search: e,
+                                        status: 0
+                                    }))
                                 }}
-                                onChange={(e) => dispatch(findVoucherByNumberPhone(e))}
+                                onChange={(e) => {
+                                    setVoucher({})
+                                    dispatch(findVoucherByNumberPhone(e))
+                                    console.log(vouchersByNumberPhone)
+                                }}
                                 placeholder="Nhập số điện thoại"
                             />
                         </Form.Item>
@@ -216,10 +222,10 @@ const CartComponent = () => {
                                 placeholder="Select Voucher"
                                 value={voucher.name}
                                 onChange={(e) => setVoucher(vouchersByNumberPhone.find(value => value.id === e))}
-                                options={vouchersByNumberPhone && vouchersByNumberPhone.map(voucher => ({
+                                options={vouchersByNumberPhone ? vouchersByNumberPhone.map(voucher => ({
                                     value: voucher.id,
                                     label: voucher.name + ' : ' + voucher.value + ' VND '
-                                }))}>
+                                })) : []}>
                             </Select>
                         </Form.Item>
                         <Form.Item

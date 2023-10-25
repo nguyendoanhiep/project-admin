@@ -29,7 +29,7 @@ const OrdersComponent = () => {
             title: 'Voucher sử dụng',
             dataIndex: 'voucherName',
             key: 'voucherName',
-            width: 150
+            width: 180
         },
         {
             title: 'Giá gốc',
@@ -98,24 +98,24 @@ const OrdersComponent = () => {
         size: 10,
         search: '',
         status: 0,
-        ascOrDesc: ''
     });
-    const ordersList = useSelector((state) => state.orders.data);
+    const ordersList = useSelector((state) => state.orders.orders);
 
 
     const onSearch = async (value) => {
-        await setParams({...params, name: value})
-        await dispatch(getAllOrders(params.page, params.size, value, params.status, params.ascOrDesc))
+        const newParams = {...params, name: value}
+        setParams(newParams)
+        await dispatch(getAllOrders(newParams))
     };
 
     const handlePageChange = (e) => {
-        setParams({...params, page: e})
-        dispatch(getAllOrders(e, params.size, params.search, params.status, params.ascOrDesc))
+        const newParams = {...params, page: e}
+        setParams(newParams)
+        dispatch(getAllOrders(newParams))
 
     }
     useEffect(() => {
-        console.log(ordersList)
-        dispatch(getAllOrders(params.page, params.size, params.search, params.status, params.ascOrDesc))
+        dispatch(getAllOrders(params))
     }, [])
     return (
         <div style={{position: 'relative'}}>

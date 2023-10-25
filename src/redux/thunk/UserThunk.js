@@ -3,14 +3,9 @@ import {baseUrl} from '../../env/Config'
 import {login, register,getALl} from "../slice/UserSlince";
 
 const domain = baseUrl.host + baseUrl.port;
-export const registerUser = (username, password, numberPhone, roles) => async (dispatch) => {
+export const registerUser = (user) => async (dispatch) => {
     try {
-        const response = await axios.post(domain + '/user/register', {
-            username,
-            password,
-            numberPhone,
-            roles
-        });
+        const response = await axios.post(domain + '/user/register', user);
         dispatch(register(response.data));
         return response.data;
     } catch (error) {
@@ -27,15 +22,10 @@ export const loginUser = (username, password) => async (dispatch) => {
         console.log(error);
     }
 }
-export const getAllUser = (page, size, search, status) => async (dispatch) => {
+export const getAllUser = (params) => async (dispatch) => {
     try {
         const response = await axios.get(domain + '/user/getAll', {
-            params: {
-                page: page,
-                size: size,
-                search: search,
-                status: status
-            }
+            params: params
         });
         dispatch(getALl(response.data));
     } catch (error) {

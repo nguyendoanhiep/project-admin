@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {Button, Input, Modal, Pagination, Select, Table} from 'antd';
 import {getAllUser, registerUser} from "../../redux/thunk/UserThunk";
+import {toast} from "react-toastify";
 
 const {Search} = Input;
 const UserComponent = () => {
@@ -90,14 +91,14 @@ const UserComponent = () => {
     const [confirmPassword, setConfirmPassword] = useState('')
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
+    const [isLoading, setIsLoading] = useState(false)
     const [params, setParams] = useState({
         page: 1,
         size: 10,
         search: '',
         status: 0
     });
-    const userList = useSelector((state) => state.user.data);
-    const [isSaveSuccess, setIsSaveSuccess] = useState(false);
+    const userList = useSelector((state) => state.user.users);
 
     const openAddOrUpdate = (record) => {
         setConfirmPassword("")
@@ -115,25 +116,41 @@ const UserComponent = () => {
 
     };
     const closeAddOrUpdate = () => {
+        setPasswordMatch(true);
         setIsAddOrUpdate(false)
         setUser({})
     }
     const handleDelete = (record) => {
     };
     const onSearch = async (value) => {
-        setParams({...params, search: value})
-        dispatch(getAllUser(params.page, params.size, value, params.status))
+        const newParams = {...params, search: value}
+        setParams(newParams)
+        dispatch(getAllUser(newParams))
     };
     const handleAddOrUpdate = async () => {
-        const res = await dispatch(registerUser(user))
-        if (res) {
-            setIsSaveSuccess(res)
+       const res = await dispatch(registerUser(user))
+        if (res.code === 200) {
+            toast.success('Thêm Tài khoản thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            setIsAddOrUpdate(false);
+            setIsLoading(!isLoading)
+        }
+        if (res.code === 400) {
+            toast.error('Thêm Tài khoản thất bại!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
         }
     }
 
     const handlePageChange = (e) => {
-        setParams({...params, page: e})
-        dispatch(getAllUser(e, params.size, params.search, params.status))
+        const newParams = {...params, page: e}
+        setParams(newParams)
+        dispatch(getAllUser(newParams))
 
     }
     const handleConfirmPasswordChange = (e) => {
@@ -145,9 +162,9 @@ const UserComponent = () => {
     };
 
     useEffect(() => {
-        setIsAddOrUpdate(false);
-        dispatch(getAllUser(params.page, params.size, params.search, params.status))
-    }, [isSaveSuccess])
+        dispatch(getAllUser(params))
+    }, [isLoading])
+
     return (
         <div style={{position: 'relative'}}>
             <div style={{
@@ -213,7 +230,7 @@ const UserComponent = () => {
                         type="text"
                         placeholder="Tên tài khoản"
                         value={user.username || ''}
-                        onChange={(e) => setUser({...user, name: e.target.value})}
+                        onChange={(e) => setUser({...user, username: e.target.value})}
                     />
                     <Input
                         style={{width: 350, marginTop: 10, marginBottom: 10}}
