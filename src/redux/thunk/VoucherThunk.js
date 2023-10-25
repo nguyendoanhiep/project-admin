@@ -36,3 +36,16 @@ export const findVoucherByNumberPhone = (numberPhone) => async (dispatch) => {
         console.log(error);
     }
 };
+
+export const deleteVoucher = (id) => async () => {
+    try {
+        const res = await axios.post(domain + `/voucher/delete`, null,{
+            params: {
+                id : id
+            }
+        });
+        return res.data
+    } catch (error) {
+        console.log(error);
+    }
+};

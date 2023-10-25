@@ -1,7 +1,7 @@
 import {Button, DatePicker, Input, Modal, Pagination, Select, Table} from "antd";
 import {useDispatch, useSelector} from "react-redux";
 import React, {useEffect, useState} from "react";
-import {addOrUpdateVoucher, getAllVoucher} from "../../redux/thunk/VoucherThunk";
+import {addOrUpdateVoucher, deleteVoucher, getAllVoucher} from "../../redux/thunk/VoucherThunk";
 import moment from "moment";
 import {toast} from "react-toastify";
 const {Search} = Input;
@@ -105,7 +105,24 @@ const VoucherComponent = () => {
         setIsAddOrUpdate(false)
         setVoucher({})
     }
-    const handleDelete = (record) => {
+    const handleDelete = async (record) => {
+        const res = await dispatch(deleteVoucher(record.id))
+        if(res.code === 200){
+            toast.success('Xóa Voucher thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            setIsLoading(!isLoading)
+        }
+        if (res.code === 400) {
+            toast.error('Không thể xóa , đã có lỗi xảy ra!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+        }
+
     };
     const onSearch = (value) => {
         const newParams = {...params, search : value}

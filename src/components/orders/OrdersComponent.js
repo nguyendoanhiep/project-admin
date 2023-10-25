@@ -1,7 +1,8 @@
 import {Button, Input, Pagination, Select, Table} from "antd";
 import {useDispatch, useSelector} from "react-redux";
 import React, {useEffect, useState} from "react";
-import {getAllOrders} from "../../redux/thunk/OrdersThunk";
+import {activationOfTurnOff, getAllOrders} from "../../redux/thunk/OrdersThunk";
+import {toast} from "react-toastify";
 
 const {Search} = Input;
 
@@ -59,7 +60,7 @@ const OrdersComponent = () => {
                     case 1:
                         return <span className='status-active'>Đang hoạt động</span>
                     case 2:
-                        return <span className='status-inactive'>Không hoạt động</span>
+                        return <span className='status-inactive'>Vô hiệu hóa</span>
                     default:
                         return 'Không rõ';
                 }
@@ -78,11 +79,11 @@ const OrdersComponent = () => {
             fixed: 'right',
             render: (record) => (
                 <span>
-                 <Button style={{marginLeft: 5, width: 100 , backgroundColor:'#FFA500'}} type="primary"
-                         onClick={() => console.log()} >Vô hiệu hóa</Button>
+                 <Button style={{marginLeft: 5, width: 110 , backgroundColor: record.status === 1 && '#FFA500' || record.status === 2 &&'#00CC00'}} type="primary"
+                         onClick={() => handleActivationOfTurnOff(record)} > {record.status === 1 && 'Vô hiệu hóa' || record.status === 2 && 'Kích hoạt lại' }</Button>
                 </span>
             ),
-            width: 130
+            width: 140
         },
     ];
 
@@ -101,7 +102,25 @@ const OrdersComponent = () => {
     });
     const ordersList = useSelector((state) => state.orders.orders);
 
+    const handleActivationOfTurnOff = async (record) => {
+        const res = await dispatch(activationOfTurnOff(record.id))
+        if(res.code === 200){
+            toast.success('Thay đổi trạng thái thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            dispatch(getAllOrders(params))
+        }
+        if (res.code === 400) {
+            toast.error('Không thể Thay đổi trạng thái , đã có lỗi xảy ra!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+        }
 
+    };
     const onSearch = async (value) => {
         const newParams = {...params, name: value}
         setParams(newParams)

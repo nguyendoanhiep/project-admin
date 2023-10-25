@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {
     addOrUpdateProduct,
-    deleteImageOfProduct,
+    deleteImageOfProduct, deleteProduct,
     getAllProduct,
     getImageByProductId,
     setPriorityImage
@@ -176,7 +176,24 @@ const ProductComponent = () => {
         setIsAddOrUpdate(false)
         setProduct({})
     }
-    const handleDelete = (record) => {
+    const handleDelete = async (record) => {
+        const res = await dispatch(deleteProduct(record.id))
+        if(res.code === 200){
+            toast.success('Xóa Sản phẩm thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            setIsLoading(!isLoading)
+        }
+        if (res.code === 400) {
+            toast.error('Không thể xóa , đã có lỗi xảy ra!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+        }
+
     };
     const onSearch = async (value) => {
         const newParams = {...params, name: value}

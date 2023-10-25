@@ -23,3 +23,16 @@ export const addOrUpdateOrders = (orders) => async (dispatch) => {
         console.log(error);
     }
 };
+
+export const activationOfTurnOff = (id) => async () => {
+    try {
+        const res = await axios.post(domain + `/orders/activationOfTurnOff`, null,{
+            params: {
+                id : id
+            }
+        });
+        return res.data
+    } catch (error) {
+        console.log(error);
+    }
+};

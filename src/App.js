@@ -12,9 +12,11 @@ function App() {
     return (
         <div className="app">
             <HeaderComponent/>
-            <div style={{display: 'flex', marginTop: 50}}>
-                <NavigationComponent/>
-                <div style={{marginLeft: 50 , width:'100%' , overflow: 'auto'}}>
+            <div style={{display: 'flex', marginTop: 50, justifyContent: 'space-between'}}>
+                <div style={{width: '20%'}}>
+                    <NavigationComponent/>
+                </div>
+                <div style={{width: '75%', overflow: 'auto'}}>
                     <RouterMain/>
                 </div>
             </div>

@@ -37,7 +37,7 @@ export const getImageByProductId = (productId) => async (dispatch) => {
         console.log(error);
     }
 };
-export const setPriorityImage = (imageId, productId) => async (dispatch) => {
+export const setPriorityImage = (imageId, productId) => async () => {
     try {
         return await axios.get(domain + `/product/setPriorityImage`, {
             params: {
@@ -49,13 +49,26 @@ export const setPriorityImage = (imageId, productId) => async (dispatch) => {
         console.log(error);
     }
 };
-export const deleteImageOfProduct = (imageId) => async (dispatch) => {
+export const deleteImageOfProduct = (imageId) => async () => {
     try {
-        return await axios.get(domain + `/product/deleteImageOfProduct`, {
+        return await axios.post(domain + `/product/deleteImageOfProduct`, null,{
             params: {
-                imageId: imageId
+                imageId : imageId
             }
         });
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+export const deleteProduct = (id) => async () => {
+    try {
+        const res = await axios.post(domain + `/product/delete`, null,{
+            params: {
+                id : id
+            }
+        });
+        return res.data
     } catch (error) {
         console.log(error);
     }
