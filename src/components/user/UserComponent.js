@@ -20,18 +20,6 @@ const UserComponent = () => {
             width: 120
         },
         {
-            title: 'Ngày khởi tạo',
-            dataIndex: 'createDate',
-            key: 'createDate',
-            width: 110
-        },
-        {
-            title: ' Ngày chỉnh sửa',
-            dataIndex: 'modifiedDate',
-            key: 'modifiedDate',
-            width: 110
-        },
-        {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
@@ -61,6 +49,18 @@ const UserComponent = () => {
             ))}
                 </span>
             ),
+        },
+        {
+            title: 'Ngày khởi tạo',
+            dataIndex: 'createDate',
+            key: 'createDate',
+            width: 110
+        },
+        {
+            title: ' Ngày chỉnh sửa',
+            dataIndex: 'modifiedDate',
+            key: 'modifiedDate',
+            width: 110
         },
         {
             title: 'Action',

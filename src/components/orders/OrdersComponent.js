@@ -79,8 +79,10 @@ const OrdersComponent = () => {
             fixed: 'right',
             render: (record) => (
                 <span>
-                 <Button style={{marginLeft: 5, width: 110 , backgroundColor: record.status === 1 && '#FFA500' || record.status === 2 &&'#00CC00'}} type="primary"
-                         onClick={() => handleActivationOfTurnOff(record)} > {record.status === 1 && 'Vô hiệu hóa' || record.status === 2 && 'Kích hoạt lại' }</Button>
+                 <Button
+                     type="primary"
+                     style={{marginLeft: 5, width: 110, backgroundColor: record.status === 1 ? '#FFA500' : '#00CC00'}}
+                     onClick={() => handleActivationOfTurnOff(record)}> {record.status === 1 ? 'Vô hiệu hóa' : 'Kích hoạt lại'}</Button>
                 </span>
             ),
             width: 140
@@ -104,7 +106,7 @@ const OrdersComponent = () => {
 
     const handleActivationOfTurnOff = async (record) => {
         const res = await dispatch(activationOfTurnOff(record.id))
-        if(res.code === 200){
+        if (res.code === 200) {
             toast.success('Thay đổi trạng thái thành công!', {
                 className: 'my-toast',
                 position: "top-center",
@@ -166,10 +168,10 @@ const OrdersComponent = () => {
                 pagination={false}
                 bordered
                 style={{
-                    minHeight:600
+                    minHeight: 600
                 }}
                 scroll={{
-                    x:1100
+                    x: 1100
                 }}
             />
             <Pagination
