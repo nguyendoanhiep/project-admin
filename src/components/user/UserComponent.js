@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {Button, Input, Modal, Pagination, Select, Table} from 'antd';
-import {getAllUser, registerUser} from "../../redux/thunk/UserThunk";
+import {getAllUser, registerUser, updateUser} from "../../redux/thunk/UserThunk";
 import {toast} from "react-toastify";
 
 const {Search} = Input;
@@ -84,6 +84,10 @@ const UserComponent = () => {
         {value: 2, label: 'Không hoạt động'},
         {value: 3, label: 'Không xác định'},
     ];
+    const ROLES_OPTIONS = [
+        {value: 'ROLE_USER', label: 'ROLE_USER'},
+        {value: 'ROLE_ADMIN', label: 'ROLE_ADMIN'},
+    ]
 
     const dispatch = useDispatch();
     const [user, setUser] = useState({})
@@ -105,15 +109,13 @@ const UserComponent = () => {
         setIsAddOrUpdate(true)
         if (record) {
             setIsCreate(false)
-            setUser(record);
+            setUser({...record, roles: record.roles && record.roles.map(value => value.name)});
         } else {
             setIsCreate(true)
             setUser({
                 status: 1
             });
         }
-
-
     };
     const closeAddOrUpdate = () => {
         setPasswordMatch(true);
@@ -127,8 +129,8 @@ const UserComponent = () => {
         setParams(newParams)
         dispatch(getAllUser(newParams))
     };
-    const handleAddOrUpdate = async () => {
-       const res = await dispatch(registerUser(user))
+    const handleAdd = async () => {
+        const res = await dispatch(registerUser(user))
         if (res.code === 200) {
             toast.success('Thêm Tài khoản thành công!', {
                 className: 'my-toast',
@@ -140,6 +142,26 @@ const UserComponent = () => {
         }
         if (res.code === 400) {
             toast.error('Thêm Tài khoản thất bại!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+        }
+    }
+
+    const handleUpdate = async () => {
+        const res = await dispatch(updateUser(user))
+        if (res.code === 200) {
+            toast.success('Sửa Tài khoản thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+            setIsAddOrUpdate(false);
+            setIsLoading(!isLoading)
+        }
+        if (res.code === 400) {
+            toast.error('Sửa Tài khoản thất bại!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -221,7 +243,7 @@ const UserComponent = () => {
                     alignSelf: 'flex-end'
                 }}/>
             <Modal title={isCreate ? "Thêm tài khoản mới" : "Chỉnh sửa thông tin"} open={isAddOrUpdate}
-                   onOk={handleAddOrUpdate}
+                   onOk={isCreate ? handleAdd : handleUpdate}
                    onCancel={closeAddOrUpdate}>
                 <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
                     <Input
@@ -269,6 +291,18 @@ const UserComponent = () => {
                         value={user.status ? user.status : 1}
                         onChange={(e) => setUser({...user, status: e})}
                         options={STATUS_OPTIONS}
+                    />
+                    <Select
+                        key={user.id + 1}
+                        mode="multiple"
+                        allowClear
+                        style={{width: 350}}
+                        placeholder="Please select"
+                        value={user.roles && user.roles}
+                        onChange={(e) => {
+                            setUser({...user, roles: e})
+                        }}
+                        options={ROLES_OPTIONS}
                     />
                 </div>
             </Modal>

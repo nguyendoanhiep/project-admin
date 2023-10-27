@@ -32,3 +32,12 @@ export const getAllUser = (params) => async (dispatch) => {
         console.log(error);
     }
 };
+
+export const updateUser = (user) => async (dispatch) => {
+    try {
+        const response = await axios.post(domain + '/user/edit', user);
+        return response.data;
+    } catch (error) {
+        console.log(error);
+    }
+};

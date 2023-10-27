@@ -1,8 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
-import {Avatar, Button, Input, Modal, Pagination, Select, Table} from 'antd';
+import {Avatar, Button, Image, Input, Modal, Pagination, Select, Table, Upload} from 'antd';
 import {addOrUpdateCustomer, getAllCustomer} from "../../redux/thunk/CustomerThunk";
 import {toast} from "react-toastify";
+import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
+import {storage} from "../../env/FirebaseConfig";
+import {addOrUpdateProduct, getImageByProductId} from "../../redux/thunk/ProductThuck";
+import {UploadOutlined} from "@ant-design/icons";
 
 const {Search} = Input;
 const CustomerComponent = () => {
@@ -42,7 +46,7 @@ const CustomerComponent = () => {
             key: 'image.urlImage',
             width: 100,
             render: (text) => {
-                return <Avatar style={{width: 70, height: 70}} src={text.image && text.image.urlImage}/>
+                return <Avatar style={{width: 70, height: 70}} src={text && text.urlImage}/>
             }
         },
         {
@@ -155,6 +159,29 @@ const CustomerComponent = () => {
         dispatch(getAllCustomer(newParams))
 
     }
+
+    const handleUpload = async ({file, onSuccess, onError}) => {
+        const storageRef = ref(storage, "images/" + file.name);
+        try {
+            const uploadTask = uploadBytesResumable(storageRef, file);
+            uploadTask.on(
+                "state_changed",
+                null,
+                (error) => {
+                    onError(error);
+                },
+                () => {
+                    getDownloadURL(uploadTask.snapshot.ref).then(async (url) => {
+                        onSuccess();
+                        setCustomer({...customer, urlImage: url})
+                    });
+                }
+            );
+        } catch (error) {
+            onError(error);
+        }
+    };
+
     useEffect(() => {
         dispatch(getAllCustomer(params))
     }, [isLoading])
@@ -264,6 +291,19 @@ const CustomerComponent = () => {
                         onChange={(e) => setCustomer({...customer, status: e})}
                         options={STATUS_OPTIONS}
                     />
+                    <Upload customRequest={handleUpload} showUploadList={false} >
+                        <Button icon={<UploadOutlined/>}>Upload</Button>
+                    </Upload>
+                    {customer.urlImage &&
+                        <div style={{marginTop:10}}>
+                            <Image src={customer.urlImage}
+                                   style={{
+                                       width: 135,
+                                       height: 135,
+                                       borderRadius: 10,
+                                   }}/>
+                        </div>
+                    }
                 </div>
             </Modal>
         </div>

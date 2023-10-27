@@ -79,7 +79,7 @@ const CartComponent = () => {
         },
     ];
     const dispatch = useDispatch();
-    const cartItems = JSON.parse(sessionStorage.getItem("cartItems"));
+    const cartItems = JSON.parse(sessionStorage.getItem("cartItems"))|| [];
     const [isLoading, setIsLoading] = useState(false)
     const [originalTotalValue, setOriginalTotalValue] = useState()
     const [voucher, setVoucher] = useState({})
@@ -128,6 +128,14 @@ const CartComponent = () => {
         setIsLoading(!isLoading)
     }
     const onSubmit = async (values) => {
+        if (cartItems.length === 0) {
+            return toast.warning('Vui lòng thêm sản phẩm!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+
+        }
         const ordersProducts = cartItems.map(item => {
             const newItem = {}
             newItem.ordersId = null;
@@ -141,7 +149,7 @@ const CartComponent = () => {
         values.discountAmount = voucher.value
         values.totalValue = totalValue
         values = {...values, ordersProducts: ordersProducts};
-        const res = dispatch(addOrUpdateOrders(values))
+        const res = await dispatch(addOrUpdateOrders(values))
         if (res.code === 200) {
             toast.success('Thêm Đơn hàng thành công!', {
                 className: 'my-toast',
@@ -149,7 +157,8 @@ const CartComponent = () => {
                 autoClose: 2000,
             });
             sessionStorage.removeItem("cartItems");
-            setIsLoading(!!isLoading)
+            setIsLoading(!isLoading)
+            return;
         }
         if (res.code === 400) {
             toast.error('Thêm Đơn hàng thất bại!', {

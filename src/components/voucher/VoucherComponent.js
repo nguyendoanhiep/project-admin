@@ -4,6 +4,7 @@ import React, {useEffect, useState} from "react";
 import {addOrUpdateVoucher, deleteVoucher, getAllVoucher} from "../../redux/thunk/VoucherThunk";
 import moment from "moment";
 import {toast} from "react-toastify";
+
 const {Search} = Input;
 
 const VoucherComponent = () => {
@@ -25,6 +26,12 @@ const VoucherComponent = () => {
             dataIndex: 'value',
             key: 'value',
             width: 110
+        },
+        {
+            title: 'Số lượng ',
+            dataIndex: 'quantity',
+            key: 'quantity',
+            width: 100
         },
         {
             title: 'Trạng thái',
@@ -67,7 +74,7 @@ const VoucherComponent = () => {
                          onClick={() => handleDelete(record)} danger>Delete</Button>
                 </span>
             ),
-            width: 160
+            width: 180
         },
     ];
 
@@ -107,7 +114,7 @@ const VoucherComponent = () => {
     }
     const handleDelete = async (record) => {
         const res = await dispatch(deleteVoucher(record.id))
-        if(res.code === 200){
+        if (res.code === 200) {
             toast.success('Xóa Voucher thành công!', {
                 className: 'my-toast',
                 position: "top-center",
@@ -125,12 +132,12 @@ const VoucherComponent = () => {
 
     };
     const onSearch = (value) => {
-        const newParams = {...params, search : value}
+        const newParams = {...params, search: value}
         setParams(newParams)
         dispatch(getAllVoucher(newParams))
     };
     const handleAddOrUpdate = async () => {
-      const res = await dispatch(addOrUpdateVoucher(voucher))
+        const res = await dispatch(addOrUpdateVoucher(voucher))
         if (res.code === 200 && isCreate) {
             toast.success('Thêm Voucher thành công!', {
                 className: 'my-toast',
@@ -206,10 +213,10 @@ const VoucherComponent = () => {
                 pagination={false}
                 bordered
                 style={{
-                    minHeight:600
+                    minHeight: 600
                 }}
                 scroll={{
-                    x:1100
+                    x: 1100
                 }}
             />
             <Pagination
@@ -251,6 +258,13 @@ const VoucherComponent = () => {
                         value={voucher.value || ''}
                         onChange={(e) => setVoucher({...voucher, value: e.target.value})}
                     />
+                    <Input
+                        style={{width: 350, marginTop: 10, marginBottom: 10}}
+                        type="text"
+                        placeholder="Số lượng"
+                        value={voucher.quantity}
+                        onChange={(e) => setVoucher({...voucher, quantity: e.target.value || 0})}
+                    />
                     <Select
                         key={voucher.id}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
@@ -260,12 +274,16 @@ const VoucherComponent = () => {
                     />
                     <DatePicker
                         value={voucher.voucherStartDate ? moment(voucher.voucherStartDate, "DD-MM-YYYY HH:mm:ss") : null}
-                        onChange={(e) => {setVoucher({...voucher, voucherStartDate: e && e.format("DD-MM-YYYY HH:mm:ss")})
+                        onChange={(e) => {
+                            setVoucher({...voucher, voucherStartDate: e && e.format("DD-MM-YYYY HH:mm:ss")})
                         }}
                         showTime/>
                     <DatePicker
                         value={voucher.voucherExpirationDate ? moment(voucher.voucherExpirationDate, "DD-MM-YYYY HH:mm:ss") : null}
-                        onChange={(e) => setVoucher({...voucher, voucherExpirationDate: e && e.format("DD-MM-YYYY HH:mm:ss")})}
+                        onChange={(e) => setVoucher({
+                            ...voucher,
+                            voucherExpirationDate: e && e.format("DD-MM-YYYY HH:mm:ss")
+                        })}
                         showTime/>
                 </div>
             </Modal>
