@@ -2,17 +2,21 @@ import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
 import {
     addOrUpdateProduct,
-    deleteImageOfProduct, deleteProduct,
+    deleteProduct,
     getAllProduct,
+} from "../../redux/thunk/ProductThuck";
+import {
+    addImage,
+    deleteImageOfProduct,
     getImageByProductId,
     setPriorityImage
-} from "../../redux/thunk/ProductThuck";
+} from "../../redux/thunk/ImageThunk";
 import {Image, Button, Input, Modal, Pagination, Select, Table, Upload} from 'antd';
 import {toast} from "react-toastify";
 import {CheckOutlined, DeleteOutlined, UploadOutlined} from "@ant-design/icons";
 import {storage} from "../../env/FirebaseConfig";
 import {ref, getDownloadURL, uploadBytesResumable} from 'firebase/storage'
-import {clearImages} from "../../redux/slice/ProductSlince";
+import {clearImages} from "../../redux/slice/ImageSlince";
 
 const {TextArea, Search} = Input;
 const ProductComponent = () => {
@@ -138,8 +142,9 @@ const ProductComponent = () => {
         type: 0
     });
     const productList = useSelector((state) => state.product.products);
-    const images = useSelector((state) => state.product.images);
-
+    const oldImages = useSelector((state) => state.image.images);
+    const [newImages, setNewImages] = useState([])
+    const [images, setImages] = useState([])
     const addToCart = (productOfCart) => {
         const product = cartItems && cartItems.find(item => item.id === productOfCart.id)
         if (product) {
@@ -157,6 +162,7 @@ const ProductComponent = () => {
     }
 
     const openAddOrUpdate = (record) => {
+        setNewImages([])
         setIsAddOrUpdate(true)
         if (record) {
             dispatch(getImageByProductId(record.id))
@@ -178,7 +184,7 @@ const ProductComponent = () => {
     }
     const handleDelete = async (record) => {
         const res = await dispatch(deleteProduct(record.id))
-        if(res.code === 200){
+        if (res.code === 200) {
             toast.success('Xóa Sản phẩm thành công!', {
                 className: 'my-toast',
                 position: "top-center",
@@ -201,9 +207,7 @@ const ProductComponent = () => {
         dispatch(getAllProduct(newParams))
     };
     const handleAddOrUpdate = async () => {
-        const data = {
-            ...product, images: images && images
-        }
+        const data = {...product, images: images}
         const res = await dispatch(addOrUpdateProduct(data))
         if (res.code === 200 && isCreate) {
             toast.success('Thêm Sản phẩm thành công!', {
@@ -266,8 +270,18 @@ const ProductComponent = () => {
         dispatch(getAllProduct(params))
     }, [isLoading])
 
+    useEffect(() => {
+        setImages([...oldImages, ...newImages])
+    }, [oldImages, newImages])
 
     const handleUpload = async ({file, onSuccess, onError}) => {
+        if (product == null) {
+            toast.success('Thêm ảnh thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+        }
         const storageRef = ref(storage, "images/" + file.name);
         try {
             const uploadTask = uploadBytesResumable(storageRef, file);
@@ -280,23 +294,20 @@ const ProductComponent = () => {
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref).then(async (url) => {
                         onSuccess();
-                        const image = {
-                            id: null,
-                            name: null,
-                            urlImage: url,
-                            priority: 0
-                        }
-                        const data = {
-                            ...product, images: images ? [...images, image] : [image]
-                        }
-                        const res = await dispatch(addOrUpdateProduct(data))
+                        const res = await dispatch(addImage({
+                                id: null,
+                                name: null,
+                                urlImage: url,
+                                priority: 0
+                            }
+                        ))
                         if (res.code === 200) {
                             toast.success('Thêm ảnh thành công!', {
                                 className: 'my-toast',
                                 position: "top-center",
                                 autoClose: 2000,
                             });
-                            dispatch(getImageByProductId(product.id))
+                            setNewImages([...newImages, res.data])
                         }
                     });
                 }
@@ -428,17 +439,18 @@ const ProductComponent = () => {
                             }}
                             onClick={() => onDeleteImage(item.id)}
                         />
-                        <CheckOutlined
-                            style={{
-                                position: 'absolute',
-                                top: 5,
-                                right: 30,
-                                fontSize: 22,
-                                color: '#00CC00',
-                                cursor: 'pointer',
-                            }}
-                            onClick={() => onSetPriorityImage(item.id)}
-                        />
+                        {!newImages.find(value => value.id === item.id) &&
+                            <CheckOutlined
+                                style={{
+                                    position: 'absolute',
+                                    top: 5,
+                                    right: 30,
+                                    fontSize: 22,
+                                    color: '#00CC00',
+                                    cursor: 'pointer',
+                                }}
+                                onClick={() => onSetPriorityImage(item.id)}
+                            />}
                     </div>
                 ))
                 }

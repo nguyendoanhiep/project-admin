@@ -1,6 +1,6 @@
 import {baseUrl} from "../../env/Config";
 import axios from "axios";
-import {addOrUpdate, getAll, getAllImage} from "../slice/ProductSlince";
+import {addOrUpdate, getAll} from "../slice/ProductSlince";
 
 const domain = baseUrl.host + baseUrl.port;
 export const getAllProduct = (params) => async (dispatch) => {
@@ -25,41 +25,7 @@ export const addOrUpdateProduct = (product) => async (dispatch) => {
         console.log(error);
     }
 };
-export const getImageByProductId = (productId) => async (dispatch) => {
-    try {
-        const response = await axios.get(domain + `/product/getImageByProductId`, {
-            params: {
-                productId: productId
-            }
-        });
-        dispatch(getAllImage(response.data));
-    } catch (error) {
-        console.log(error);
-    }
-};
-export const setPriorityImage = (imageId, productId) => async () => {
-    try {
-        return await axios.get(domain + `/product/setPriorityImage`, {
-            params: {
-                imageId: imageId,
-                productId: productId
-            }
-        });
-    } catch (error) {
-        console.log(error);
-    }
-};
-export const deleteImageOfProduct = (imageId) => async () => {
-    try {
-        return await axios.post(domain + `/product/deleteImageOfProduct`, null,{
-            params: {
-                imageId : imageId
-            }
-        });
-    } catch (error) {
-        console.log(error);
-    }
-};
+
 
 export const deleteProduct = (id) => async () => {
     try {

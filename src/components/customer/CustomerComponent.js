@@ -5,7 +5,6 @@ import {addOrUpdateCustomer, getAllCustomer} from "../../redux/thunk/CustomerThu
 import {toast} from "react-toastify";
 import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
 import {storage} from "../../env/FirebaseConfig";
-import {addOrUpdateProduct, getImageByProductId} from "../../redux/thunk/ProductThuck";
 import {UploadOutlined} from "@ant-design/icons";
 
 const {Search} = Input;

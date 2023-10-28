@@ -1,15 +1,9 @@
 import {AppstoreOutlined} from "@ant-design/icons";
 import {Menu} from "antd";
-import {useEffect} from "react";
-import {useLocation, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 
 const NavigationComponent = () => {
-    const location = useLocation();
-    const isLoggedIn = JSON.parse(localStorage.getItem('Token'));
     const navigate = useNavigate();
-
-    useEffect(() => {
-    }, [location])
 
     function getItem(label, key, icon, children, type, path) {
         return {
@@ -49,19 +43,15 @@ const NavigationComponent = () => {
             navigate(item.keyPath[0]);
         }
     };
-    useEffect(() => {
-    })
     return (
-        isLoggedIn ?
-            <Menu
-                onClick={onClick}
-                defaultSelectedKeys={['1']}
-                defaultOpenKeys={['sub2']}
-                mode="inline"
-                items={items}
-            />
-            :
-            <></>
+
+        <Menu
+            onClick={onClick}
+            defaultSelectedKeys={['1']}
+            defaultOpenKeys={['sub2']}
+            mode="inline"
+            items={items}
+        />
     )
 }
 export default NavigationComponent;
