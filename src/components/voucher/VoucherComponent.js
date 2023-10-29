@@ -1,9 +1,16 @@
-import {Button, DatePicker, Input, Modal, Pagination, Select, Table} from "antd";
+import {Avatar, Button, DatePicker, Input, Modal, Pagination, Select, Table} from "antd";
 import {useDispatch, useSelector} from "react-redux";
 import React, {useEffect, useState} from "react";
-import {addOrUpdateVoucher, deleteVoucher, getAllVoucher} from "../../redux/thunk/VoucherThunk";
+import {
+    addOrUpdateVoucher,
+    addVoucherForCustomer,
+    deleteVoucher,
+    getAllVoucher,
+    removeVoucherForCustomer
+} from "../../redux/thunk/VoucherThunk";
 import moment from "moment";
 import {toast} from "react-toastify";
+import {getAllCustomer} from "../../redux/thunk/CustomerThunk";
 
 const {Search} = Input;
 
@@ -68,13 +75,81 @@ const VoucherComponent = () => {
             fixed: 'right',
             render: (text, record) => (
                 <span>
-                 <Button style={{marginLeft: 5, width: 70}} type="primary"
-                         onClick={() => openAddOrUpdate(record)}>Edit</Button>
-                 <Button style={{marginLeft: 5, width: 70}} type="primary"
-                         onClick={() => handleDelete(record)} danger>Delete</Button>
+                    <Button style={{marginLeft: 5, width: 110}} type="primary"
+                            onClick={() => openAddOrUpdate(record)}>Edit</Button>
+                    <Button style={{marginLeft: 5, width: 110}} type="primary"
+                            onClick={() => handleDelete(record)} danger>Delete</Button>
+                    <Button style={{marginLeft: 5, width: 110}} type="primary"
+                            onClick={() => openAddVoucherForCus(record)}> Gán Voucher</Button>
                 </span>
             ),
-            width: 180
+            width: 120
+        },
+    ];
+
+    const columnsCus = [
+        {
+            title: 'Họ tên',
+            dataIndex: 'name',
+            key: 'name',
+            width: 160
+        },
+        {
+            title: 'Số điện thoại',
+            dataIndex: 'numberPhone',
+            key: 'numberPhone',
+            width: 120
+        },
+        {
+            title: 'Email',
+            dataIndex: 'email',
+            key: 'email',
+            width: 120
+        },
+        {
+            title: 'Điểm thưởng',
+            dataIndex: 'loyaltyPoints',
+            key: 'loyaltyPoints',
+            width: 120
+        },
+        {
+            title: 'Trạng thái',
+            dataIndex: 'status',
+            key: 'status',
+            width: 120,
+            render: (text) => {
+                switch (text) {
+                    case 1:
+                        return <span className='status-active'>Đang hoạt động</span>
+                    case 2:
+                        return <span className='status-inactive'>Không hoạt động</span>
+                    default:
+                        return 'Không rõ';
+                }
+            },
+        },
+        {
+            title: 'Action',
+            dataIndex: '',
+            key: 'x',
+            fixed: 'right',
+            render: (text, record) => (
+                <span>
+                    {
+                        !numberPhoneList.find(value => value === record.numberPhone) &&
+                        <Button style={{marginLeft: 5, width: 70}} type="primary"
+                                onClick={() => handleAddVoucherForCus(record)}>Chose
+                        </Button>
+                    }
+                    {
+                        numberPhoneList.find(value => value === record.numberPhone) &&
+                        <Button style={{marginLeft: 5, width: 70}} type="primary"
+                                onClick={() => handleRemoveCusForVoucher(record)} danger>Delete
+                        </Button>
+                    }
+                </span>
+            ),
+            width: 100
         },
     ];
 
@@ -86,8 +161,10 @@ const VoucherComponent = () => {
 
     const dispatch = useDispatch();
     const [voucher, setVoucher] = useState({})
+    const [numberPhoneList, setNumberPhoneList] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
+    const [isAddVoucher, setIsAddVoucher] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
     const [params, setParams] = useState({
         page: 1,
@@ -95,7 +172,16 @@ const VoucherComponent = () => {
         search: '',
         status: 0,
     });
+    const [paramsCus, setParamsCus] = useState({
+        page: 1,
+        size: 10,
+        search: '',
+        status: 0
+    });
+
     const voucherList = useSelector((state) => state.voucher.vouchers);
+    const customerList = useSelector((state) => state.customer.customers);
+
     const openAddOrUpdate = (record) => {
         setIsAddOrUpdate(true)
         if (record) {
@@ -108,6 +194,53 @@ const VoucherComponent = () => {
             });
         }
     };
+
+    const openAddVoucherForCus = (record) => {
+        setIsAddVoucher(true)
+        setVoucher(record)
+    }
+
+    const handleRemoveCusForVoucher = async (record) => {
+        const res = await dispatch(removeVoucherForCustomer(record.numberPhone,voucher.id))
+        if( res.code === 200) {
+            toast.success('Xóa Voucher khỏi khách hàng thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+        }
+        if (res.code === 400) {
+            toast.error('Không thể Xóa Voucher khỏi khách hàng , đã có lỗi xảy ra!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+        }
+    }
+
+    const handleAddVoucherForCus = async (record) => {
+        const res = await dispatch(addVoucherForCustomer(record.numberPhone,voucher.id))
+        if( res.code === 200) {
+            toast.success('Thêm Voucher cho khách hàng thành công!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+        }
+        if (res.code === 400) {
+            toast.error('Không thể thêm voucher cho khách hàng , đã có lỗi xảy ra!', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
+        }
+
+    }
+
+    const closeAddVoucherForCus = () => {
+        setIsAddVoucher(false)
+        setNumberPhoneList([])
+    }
     const closeAddOrUpdate = () => {
         setIsAddOrUpdate(false)
         setVoucher({})
@@ -171,9 +304,17 @@ const VoucherComponent = () => {
         dispatch(getAllVoucher(newParams))
 
     }
+    const onSearchCus = async (value) => {
+        setParamsCus({...paramsCus, search: value})
+    };
+
     useEffect(() => {
         dispatch(getAllVoucher(params))
     }, [isLoading])
+
+    useEffect(() => {
+        dispatch(getAllCustomer(paramsCus))
+    }, [paramsCus])
 
     return (
         <div style={{position: 'relative'}}>
@@ -286,6 +427,38 @@ const VoucherComponent = () => {
                         })}
                         showTime/>
                 </div>
+            </Modal>
+            <Modal width="800px"
+                   open={isAddVoucher}
+                   onOk={handleAddVoucherForCus}
+                   onCancel={closeAddVoucherForCus}
+            >
+                <div>
+                    <Select
+                        placeholder="Select a status"
+                        options={STATUS_OPTIONS}
+                        onChange={(e) => setParamsCus({...paramsCus, status: e})}
+                    />
+                    <Search
+                        placeholder="Nhập tên hoặc số điện thoại"
+                        allowClear
+                        style={{
+                            width: 250,
+                            marginBottom: 20
+                        }}
+                        onSearch={value => onSearchCus(value)}
+                    />
+                </div>
+                <Table
+                    rowKey={record => record.id}
+                    columns={columnsCus}
+                    dataSource={customerList.content}
+                    pagination={false}
+                    bordered
+                    style={{
+                        minHeight: 600
+                    }}
+                />
             </Modal>
         </div>
 

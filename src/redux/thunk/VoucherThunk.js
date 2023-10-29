@@ -49,3 +49,33 @@ export const deleteVoucher = (id) => async () => {
         console.log(error);
     }
 };
+
+export const addVoucherForCustomer = (numberPhone , voucherId) => async () => {
+    try {
+        const res = await axios.post(domain + `/voucher/addVoucherForCustomer`,null,{
+            params: {
+                numberPhone : numberPhone,
+                voucherId : voucherId
+            }
+        });
+        console.log(res)
+        return res.data
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+export const removeVoucherForCustomer = (numberPhone , voucherId) => async () => {
+    try {
+        const res = await axios.post(domain + `/voucher/removeVoucherForCustomer`,null,{
+            params: {
+                numberPhone : numberPhone,
+                voucherId : voucherId
+            }
+        });
+        console.log(res)
+        return res.data
+    } catch (error) {
+        console.log(error);
+    }
+};

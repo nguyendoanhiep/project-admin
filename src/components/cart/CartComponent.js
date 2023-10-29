@@ -79,7 +79,7 @@ const CartComponent = () => {
         },
     ];
     const dispatch = useDispatch();
-    const cartItems = JSON.parse(sessionStorage.getItem("cartItems"))|| [];
+    const cartItems = JSON.parse(sessionStorage.getItem("cartItems")) || [];
     const [isLoading, setIsLoading] = useState(false)
     const [originalTotalValue, setOriginalTotalValue] = useState()
     const [voucher, setVoucher] = useState({})
@@ -213,9 +213,9 @@ const CartComponent = () => {
                                 onSearch={(e) => {
                                     dispatch(getAllCustomer({
                                         page: 1,
-                                        size: 10,
+                                        size: 5,
                                         search: e,
-                                        status: 0
+                                        status: 1
                                     }))
                                 }}
                                 onChange={(e) => {
@@ -231,10 +231,11 @@ const CartComponent = () => {
                                 placeholder="Select Voucher"
                                 value={voucher.name}
                                 onChange={(e) => setVoucher(vouchersByNumberPhone.find(value => value.id === e))}
-                                options={vouchersByNumberPhone ? vouchersByNumberPhone.map(voucher => ({
+                                options={vouchersByNumberPhone && vouchersByNumberPhone.map((voucher, index) => ({
+                                    key: index + 1,
                                     value: voucher.id,
                                     label: voucher.name + ' : ' + voucher.value + ' VND '
-                                })) : []}>
+                                }))}>
                             </Select>
                         </Form.Item>
                         <Form.Item
