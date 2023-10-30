@@ -245,65 +245,78 @@ const UserComponent = () => {
             <Modal title={isCreate ? "Thêm tài khoản mới" : "Chỉnh sửa thông tin"} open={isAddOrUpdate}
                    onOk={isCreate ? handleAdd : handleUpdate}
                    onCancel={closeAddOrUpdate}>
-                <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-                    <Input
-                        disabled={user.id}
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Tên tài khoản"
-                        value={user.username || ''}
-                        onChange={(e) => setUser({...user, username: e.target.value})}
-                    />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Số điện thoại"
-                        value={user.numberPhone || ''}
-                        onChange={(e) => setUser({...user, numberPhone: e.target.value})}
-                    />
+                <div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập tên tài khoản : </span>
+                        <Input
+                            disabled={user.id}
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={user.username || ''}
+                            onChange={(e) => setUser({...user, username: e.target.value})}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập số điện thoại : </span>
+                        <Input
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={user.numberPhone || ''}
+                            onChange={(e) => setUser({...user, numberPhone: e.target.value})}
+                        />
+                    </div>
                     {isCreate &&
                         <>
-                            <Input
-                                style={{width: 350, marginTop: 10, marginBottom: 10}}
-                                type="password"
-                                placeholder="Password"
-                                value={user.password || ''}
-                                onChange={(e) => setUser({...user, password: e.target.value})}
-                            />
-                            <Input
-                                style={{width: 350, marginTop: 10, marginBottom: 10}}
-                                type="password"
-                                placeholder="Comfirm Password"
-                                value={confirmPassword || ''}
-                                onChange={(e) => {
-                                    setConfirmPassword(e.target.value)
-                                    handleConfirmPasswordChange(e.target.value)
-                                }}
-                            />
-                            {!passwordMatch && (
-                                <p style={{color: 'red'}}>Mật khẩu và xác nhận mật khẩu không khớp.</p>
-                            )}
+                            <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                                <span>Nhập password : </span>
+                                <Input
+                                    style={{width: 300, marginTop: 10, marginBottom: 10}}
+                                    type="password"
+                                    value={user.password || ''}
+                                    onChange={(e) => setUser({...user, password: e.target.value})}
+                                />
+                            </div>
+                            <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                                <span>Nhập lại password : </span>
+                                <Input
+                                    style={{width: 300, marginTop: 10, marginBottom: 10}}
+                                    type="password"
+                                    value={confirmPassword || ''}
+                                    onChange={(e) => {
+                                        setConfirmPassword(e.target.value)
+                                        handleConfirmPasswordChange(e.target.value)
+                                    }}
+                                />
+                                {!passwordMatch && (
+                                    <p style={{color: 'red'}}>Mật khẩu và xác nhận mật khẩu không khớp.</p>
+                                )}
+                            </div>
                         </>
                     }
-                    <Select
-                        key={user.id}
-                        style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        value={user.status ? user.status : 1}
-                        onChange={(e) => setUser({...user, status: e})}
-                        options={STATUS_OPTIONS}
-                    />
-                    <Select
-                        key={user.id + 1}
-                        mode="multiple"
-                        allowClear
-                        style={{width: 350}}
-                        placeholder="Please select"
-                        value={user.roles && user.roles}
-                        onChange={(e) => {
-                            setUser({...user, roles: e})
-                        }}
-                        options={ROLES_OPTIONS}
-                    />
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Phân quyền : </span>
+                        <Select
+                            key={user.id + 1}
+                            mode="multiple"
+                            allowClear
+                            style={{width: 300}}
+                            value={user.roles && user.roles}
+                            onChange={(e) => {
+                                setUser({...user, roles: e})
+                            }}
+                            options={ROLES_OPTIONS}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Chọn trạng thái : </span>
+                        <Select
+                            key={user.id}
+                            style={{width: 200, marginTop: 10, marginBottom: 10}}
+                            value={user.status ? user.status : 1}
+                            onChange={(e) => setUser({...user, status: e})}
+                            options={STATUS_OPTIONS}
+                        />
+                    </div>
                 </div>
             </Modal>
         </div>

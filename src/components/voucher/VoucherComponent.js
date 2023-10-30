@@ -1,4 +1,4 @@
-import {Avatar, Button, DatePicker, Input, Modal, Pagination, Select, Table} from "antd";
+import {Button, DatePicker, Input, Modal, Pagination, Select, Table} from "antd";
 import {useDispatch, useSelector} from "react-redux";
 import React, {useEffect, useState} from "react";
 import {
@@ -11,6 +11,7 @@ import {
 import moment from "moment";
 import {toast} from "react-toastify";
 import {getAllCustomerByVoucherId} from "../../redux/thunk/CustomerThunk";
+import dayjs from "dayjs";
 
 const {Search} = Input;
 
@@ -26,7 +27,7 @@ const VoucherComponent = () => {
             title: 'Code',
             dataIndex: 'code',
             key: 'code',
-            width: 140
+            width: 150
         },
         {
             title: 'Giá trị',
@@ -38,7 +39,7 @@ const VoucherComponent = () => {
             title: 'Số lượng ',
             dataIndex: 'quantity',
             key: 'quantity',
-            width: 100
+            width: 90
         },
         {
             title: 'Trạng thái',
@@ -77,8 +78,8 @@ const VoucherComponent = () => {
                 <span>
                     <Button style={{margin: 5, width: 110}} type="primary"
                             onClick={() => openAddOrUpdate(record)}>Edit</Button>
-                    <Button style={{margin: 5, width: 110 ,  backgroundColor: "#00CC00"}} type="primary"
-                             onClick={() => openAddVoucherForCus(record)}> Add Voucher</Button>
+                    <Button style={{margin: 5, width: 110, backgroundColor: "#00CC00"}} type="primary"
+                            onClick={() => openAddVoucherForCus(record)}> Add Voucher</Button>
                     <Button style={{margin: 5, width: 110}} type="primary"
                             onClick={() => handleDelete(record)} danger>Delete</Button>
 
@@ -138,14 +139,14 @@ const VoucherComponent = () => {
                 <span>
                     {
                         record.voucherId == null &&
-                        <Button style={{marginLeft: 5, width: 70 , backgroundColor: "#00CC00"}} type="primary"
+                        <Button style={{marginLeft: 5, width: 70, backgroundColor: "#00CC00"}} type="primary"
                                 onClick={() => handleAddVoucherForCus(record)}>Chose
                         </Button>
                     }
                     {
                         record.voucherId != null &&
-                        <Button style={{marginLeft: 5, width: 70 , backgroundColor: '#FFA500'}} type="primary"
-                                onClick={() => handleRemoveCusForVoucher(record)} >Cancel
+                        <Button style={{marginLeft: 5, width: 70, backgroundColor: '#FFA500'}} type="primary"
+                                onClick={() => handleRemoveCusForVoucher(record)}>Cancel
                         </Button>
                     }
                 </span>
@@ -205,14 +206,14 @@ const VoucherComponent = () => {
     }
 
     const handleRemoveCusForVoucher = async (record) => {
-        const res = await dispatch(removeVoucherForCustomer(record.numberPhone,voucher.id))
-        if( res.code === 200) {
+        const res = await dispatch(removeVoucherForCustomer(record.numberPhone, voucher.id))
+        if (res.code === 200) {
             toast.warning('Xóa Voucher khỏi khách hàng thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
             });
-           await dispatch(getAllCustomerByVoucherId(paramsCus))
+            await dispatch(getAllCustomerByVoucherId(paramsCus))
         }
         if (res.code === 400) {
             toast.error('Không thể Xóa Voucher khỏi khách hàng , đã có lỗi xảy ra!', {
@@ -224,8 +225,8 @@ const VoucherComponent = () => {
     }
 
     const handleAddVoucherForCus = async (record) => {
-        const res = await dispatch(addVoucherForCustomer(record.numberPhone,voucher.id))
-        if( res.code === 200) {
+        const res = await dispatch(addVoucherForCustomer(record.numberPhone, voucher.id))
+        if (res.code === 200) {
             toast.success('Thêm Voucher cho khách hàng thành công!', {
                 className: 'my-toast',
                 position: "top-center",
@@ -378,38 +379,48 @@ const VoucherComponent = () => {
             <Modal title={isCreate ? "Thêm mới Voucher" : "Chỉnh sửa Voucher"} open={isAddOrUpdate}
                    onOk={handleAddOrUpdate}
                    onCancel={closeAddOrUpdate}>
-                <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Tên Voucher"
-                        value={voucher.name || ''}
-                        onChange={(e) => setVoucher({...voucher, name: e.target.value})}
-                    />
+                <div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập tên voucher : </span>
+                        <Input
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={voucher.name || ''}
+                            onChange={(e) => setVoucher({...voucher, name: e.target.value})}
+                        />
+                    </div>
                     {
-                        !isCreate ?
+                        !isCreate &&
+                        <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                            <span>Nhập mã voucher : </span>
                             <Input
-                                style={{width: 350, marginTop: 10, marginBottom: 10}}
+                                style={{width: 300, marginTop: 10, marginBottom: 10}}
                                 type="text"
-                                placeholder="Code"
                                 value={voucher.code || ''}
                                 onChange={(e) => setVoucher({...voucher, code: e.target.value})}
-                            /> : null
+                            />
+                        </div>
                     }
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập giá trị : </span>
                     <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
+                        style={{width: 300, marginTop: 10, marginBottom: 10}}
                         type="text"
-                        placeholder="Giá trị"
                         value={voucher.value || ''}
                         onChange={(e) => setVoucher({...voucher, value: e.target.value})}
                     />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập số lượng : </span>
                     <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
+                        style={{width: 300, marginTop: 10, marginBottom: 10}}
                         type="text"
-                        placeholder="Số lượng"
                         value={voucher.quantity}
                         onChange={(e) => setVoucher({...voucher, quantity: e.target.value || 0})}
                     />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập trạng thái : </span>
                     <Select
                         key={voucher.id}
                         style={{width: 200, marginTop: 10, marginBottom: 10}}
@@ -417,19 +428,28 @@ const VoucherComponent = () => {
                         onChange={(e) => setVoucher({...voucher, status: e})}
                         options={STATUS_OPTIONS}
                     />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập ngày bắt đầu : </span>
                     <DatePicker
-                        value={voucher.voucherStartDate ? moment(voucher.voucherStartDate, "DD-MM-YYYY HH:mm:ss") : null}
+                        style={{width: 200, marginTop: 10, marginBottom: 10}}
+                        value={voucher.voucherStartDate ? dayjs(voucher.voucherStartDate, "DD-MM-YYYY HH:mm:ss") : null}
                         onChange={(e) => {
                             setVoucher({...voucher, voucherStartDate: e && e.format("DD-MM-YYYY HH:mm:ss")})
                         }}
                         showTime/>
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập ngày hết hạn : </span>
                     <DatePicker
-                        value={voucher.voucherExpirationDate ? moment(voucher.voucherExpirationDate, "DD-MM-YYYY HH:mm:ss") : null}
+                        style={{width: 200, marginTop: 10, marginBottom: 10}}
+                        value={voucher.voucherExpirationDate ? dayjs(voucher.voucherExpirationDate, "DD-MM-YYYY HH:mm:ss") : null}
                         onChange={(e) => setVoucher({
                             ...voucher,
                             voucherExpirationDate: e && e.format("DD-MM-YYYY HH:mm:ss")
                         })}
                         showTime/>
+                    </div>
                 </div>
             </Modal>
             <Modal width="800px"

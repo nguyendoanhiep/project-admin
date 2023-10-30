@@ -1,11 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
-import {Avatar, Button, Image, Input, Modal, Pagination, Select, Table, Upload} from 'antd';
+import {Avatar, Button, DatePicker, Image, Input, Modal, Pagination, Select, Table, Upload} from 'antd';
 import {addOrUpdateCustomer, getAllCustomer} from "../../redux/thunk/CustomerThunk";
 import {toast} from "react-toastify";
 import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
 import {storage} from "../../env/FirebaseConfig";
 import {UploadOutlined} from "@ant-design/icons";
+import dayjs from "dayjs";
 
 const {Search} = Input;
 const CustomerComponent = () => {
@@ -71,13 +72,13 @@ const CustomerComponent = () => {
             fixed: 'right',
             render: (text, record) => (
                 <span>
-                 <Button style={{marginLeft: 5, width: 70}} type="primary"
+                 <Button style={{margin: 5, width: 90}} type="primary"
                          onClick={() => openAddOrUpdate(record)}>Edit</Button>
-                 <Button style={{marginLeft: 5, width: 70}} type="primary"
+                 <Button style={{margin: 5, width: 90}} type="primary"
                          onClick={() => handleDelete(record)} danger>Delete</Button>
                 </span>
             ),
-            width: 160
+            width: 110
         },
     ];
 
@@ -126,7 +127,7 @@ const CustomerComponent = () => {
     const handleAddOrUpdate = async () => {
         const res = await dispatch(addOrUpdateCustomer(customer))
         if (res.code === 200) {
-            toast.success(isCreate ?'Thêm Khách hàng thành công!' : 'Cập nhập thành công!', {
+            toast.success(isCreate ? 'Thêm Khách hàng thành công!' : 'Cập nhập thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -135,7 +136,7 @@ const CustomerComponent = () => {
             setIsLoading(!isLoading)
         }
         if (res.code === 400) {
-            toast.error(isCreate ? 'Đã có lỗi xảy ra , không thể thêm mới !' : 'Đã có lỗi xảy ra , không thể cập nhập !' , {
+            toast.error(isCreate ? 'Đã có lỗi xảy ra , không thể thêm mới !' : 'Đã có lỗi xảy ra , không thể cập nhập !', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -231,66 +232,86 @@ const CustomerComponent = () => {
             <Modal title={isCreate ? "Thêm khách hàng mới" : "Chỉnh sửa thông tin"} open={isAddOrUpdate}
                    onOk={handleAddOrUpdate}
                    onCancel={closeAddOrUpdate}>
-                <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Tên khách hàng"
-                        value={customer.name || ''}
-                        onChange={(e) => setCustomer({...customer, name: e.target.value})}
-                    />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Số điện thoại"
-                        value={customer.numberPhone || ''}
-                        onChange={(e) => setCustomer({...customer, numberPhone: e.target.value})}
-                    />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Email"
-                        value={customer.email || ''}
-                        onChange={(e) => setCustomer({...customer, email: e.target.value})}
-                    />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Địa chỉ"
-                        value={customer.address || ''}
-                        onChange={(e) => setCustomer({...customer, address: e.target.value})}
-                    />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Điểm thưởng"
-                        value={customer.loyaltyPoints || ''}
-                        onChange={(e) => setCustomer({...customer, loyaltyPoints: e.target.value})}
-                    />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Ngày sinh"
-                        value={customer.dateOfBirth || ''}
-                        onChange={(e) => setCustomer({...customer, dateOfBirth: e.target.value})}
-                    />
-                    <Select
-                        key={customer.id}
-                        style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        value={customer.status ? customer.status : 1}
-                        onChange={(e) => setCustomer({...customer, status: e})}
-                        options={STATUS_OPTIONS}
-                    />
-                    <Upload customRequest={handleUpload} showUploadList={false} >
-                        <Button icon={<UploadOutlined/>}>Upload</Button>
-                    </Upload>
+                <div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <div> Nhập họ tên :</div>
+                        <Input
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={customer.name || ''}
+                            onChange={(e) => setCustomer({...customer, name: e.target.value})}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span> Nhập Số điện thoại : </span>
+                        <Input
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={customer.numberPhone || ''}
+                            onChange={(e) => setCustomer({...customer, numberPhone: e.target.value})}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span> Nhập Email : </span>
+                        <Input
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={customer.email || ''}
+                            onChange={(e) => setCustomer({...customer, email: e.target.value})}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span> Nhập địa chỉ : </span>
+                        <Input
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={customer.address || ''}
+                            onChange={(e) => setCustomer({...customer, address: e.target.value})}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span> Nhập điểm thưởng : </span>
+                        <Input
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={customer.loyaltyPoints || ''}
+                            onChange={(e) => setCustomer({...customer, loyaltyPoints: e.target.value})}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập ngày sinh : </span>
+                        <DatePicker
+                            style={{width: 200, marginTop: 10, marginBottom: 10,}}
+                            value={customer.dateOfBirth ? dayjs(customer.dateOfBirth, "DD-MM-YYYY") : null}
+                            onChange={(e) => setCustomer({
+                                ...customer, dateOfBirth: e && e.format("DD-MM-YYYY")
+                            })}/>
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Chọn trạng thái : </span>
+                        <Select
+                            key={customer.id}
+                            style={{width: 200, marginTop: 10, marginBottom: 10}}
+                            value={customer.status ? customer.status : 1}
+                            onChange={(e) => setCustomer({...customer, status: e})}
+                            options={STATUS_OPTIONS}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'center', margin: 10}}>
+                        <Upload
+                            customRequest={handleUpload}
+                            showUploadList={false}>
+                            <Button icon={<UploadOutlined/>}>Tải ảnh lên</Button>
+                        </Upload>
+                    </div>
                     {customer.urlImage &&
-                        <div style={{marginTop:10}}>
+                        <div style={{marginTop: 15, display: "flex", justifyContent: 'center'}}>
                             <Image src={customer.urlImage}
                                    style={{
                                        width: 135,
                                        height: 135,
                                        borderRadius: 10,
+
                                    }}/>
                         </div>
                     }

@@ -18,15 +18,15 @@ function App() {
     return (
         <div className="app">
             <HeaderComponent/>
-            <div style={{display: 'flex', marginTop: 50, justifyContent: 'space-between'}}>
+            <div style={{display: 'flex', justifyContent: 'space-between'}}>
                 {
                     isLoggedIn ?
-                    <div style={{width: '20%'}}>
-                        <NavigationComponent/>
-                    </div> :
-                    <></>
+                        <div style={{width: '22%'}}>
+                            <NavigationComponent/>
+                        </div> :
+                        <></>
                 }
-                <div style={{width: isLoggedIn ? '75%' : '100%', overflow: 'auto'}}>
+                <div style={{width: isLoggedIn ? '78%' : '100%', padding: 30 , backgroundColor:"#f5f7fb" , borderRadius:10}}>
                     <RouterMain/>
                 </div>
             </div>

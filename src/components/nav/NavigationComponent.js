@@ -1,4 +1,11 @@
-import {AppstoreOutlined} from "@ant-design/icons";
+import {
+    AppstoreOutlined, BankOutlined, DollarOutlined, FundOutlined,
+    HomeOutlined, LineChartOutlined,
+    OrderedListOutlined, ShopOutlined,
+    ShoppingCartOutlined,
+    TeamOutlined,
+    UserOutlined
+} from "@ant-design/icons";
 import {Menu} from "antd";
 import {useNavigate} from "react-router-dom";
 
@@ -20,20 +27,22 @@ const NavigationComponent = () => {
         {
             type: 'divider',
         },
-        getItem('Quản trị người dùng', 'sub2', <AppstoreOutlined/>, [
-            getItem('Quản lý User', '/user'),
-            getItem('Quản lý Customer', '/customer'),
+        getItem('Trang chủ', '/', <HomeOutlined style={{fontSize: 18}}/>),
+
+        getItem('Quản trị người dùng', 'sub2', <AppstoreOutlined style={{fontSize: 18}}/>, [
+            getItem('Quản lý User', '/user', <UserOutlined style={{fontSize: 18}}/>),
+            getItem('Quản lý Customer', '/customer', <TeamOutlined style={{fontSize: 18}}/>),
         ]),
-        getItem('Quản lý voucher', '/voucher'),
-        getItem('Quản lý sản phẩm', '/product'),
-        getItem('Giỏ hàng', '/cart'),
-        getItem('Quản lý đơn hàng', '/orders'),
-        getItem('Báo cáo doanh thu', '11', null, [
-            getItem('Doanh thu tháng', '12'),
-            getItem('Doanh thu quý', '13'),
-            getItem('Doanh thu năm', '14')
+        getItem('Quản lý voucher', '/voucher', <DollarOutlined style={{fontSize: 18}}/>),
+        getItem('Quản lý sản phẩm', '/product', <ShopOutlined style={{fontSize: 18}}/>),
+        getItem('Giỏ hàng', '/cart', <ShoppingCartOutlined style={{fontSize: 18}}/>),
+        getItem('Quản lý đơn hàng', '/orders', <OrderedListOutlined style={{fontSize: 18}}/>),
+        getItem('Báo cáo doanh thu', '11', <LineChartOutlined style={{fontSize: 18}}/>, [
+            getItem('Doanh thu tháng', '12', <FundOutlined style={{fontSize: 18}}/>),
+            getItem('Doanh thu quý', '13', <FundOutlined style={{fontSize: 18}}/>),
+            getItem('Doanh thu năm', '14', <FundOutlined style={{fontSize: 18}}/>)
         ]),
-        getItem('Kho hàng', '15'),
+        getItem('Kho hàng', '15', <BankOutlined style={{fontSize: 18}}/>),
         {
             type: 'divider',
         },

@@ -97,10 +97,9 @@ const ProductComponent = () => {
             fixed: 'right',
             render: (record) => (
                 <span>
-                    <Button style={{marginLeft: 5, marginBottom: 5, width: 100}} type="primary"
+                    <Button style={{marginLeft: 5, marginBottom: 5, width: 100}}
+                            type="primary"
                             onClick={() => openAddOrUpdate(record)}>Edit</Button>
-                    <Button style={{marginLeft: 5, marginBottom: 5, width: 100}} type="primary"
-                            onClick={() => handleDelete(record)} danger>Delete</Button>
                     <Button style={{
                         marginLeft: 5,
                         marginBottom: 5,
@@ -109,6 +108,9 @@ const ProductComponent = () => {
                     }}
                             type="primary"
                             onClick={() => addToCart(record)} disabled={record.status !== 1}>Add To Cart</Button>
+                    <Button style={{marginLeft: 5, marginBottom: 5, width: 100}}
+                            type="primary"
+                            onClick={() => handleDelete(record)} danger>Delete</Button>
                 </span>
             ),
             width: 130
@@ -210,7 +212,7 @@ const ProductComponent = () => {
         const data = {...product, images: images}
         const res = await dispatch(addOrUpdateProduct(data))
         if (res.code === 200) {
-            toast.success(isCreate ? 'Thêm sản phẩm thành công!' : 'Cập nhập sản phẩm thành công!' , {
+            toast.success(isCreate ? 'Thêm sản phẩm thành công!' : 'Cập nhập sản phẩm thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -370,45 +372,59 @@ const ProductComponent = () => {
             <Modal title={isCreate ? "Thêm mới sản phẩm" : "Chỉnh sửa sản phẩm"} open={isAddOrUpdate}
                    onOk={handleAddOrUpdate}
                    onCancel={closeAddOrUpdate}>
-                <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Tên sản phẩm"
-                        value={product.name || ''}
-                        onChange={(e) => setProduct({...product, name: e.target.value})}
-                    />
-                    <TextArea
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Mô tả"
-                        value={product.description || ''}
-                        onChange={(e) => setProduct({...product, description: e.target.value})}
-                    />
-                    <Input
-                        style={{width: 350, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        placeholder="Giá tiền"
-                        value={product.price || ''}
-                        onChange={(e) => setProduct({...product, price: e.target.value})}
-                    />
-                    <Select
-                        key={product.id}
-                        style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        defaultValue={isCreate ? 1 : product.status}
-                        onChange={(e) => setProduct({...product, status: e})}
-                        options={STATUS_OPTIONS}
-                    />
-                    <Select
-                        key={product.id + 1}
-                        style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        defaultValue={isCreate ? 1 : product.type}
-                        onChange={(e) => setProduct({...product, type: e})}
-                        options={TYPE_OPTIONS}
-                    />
-                    <Upload customRequest={handleUpload} showUploadList={false}>
-                        <Button icon={<UploadOutlined/>}>Upload</Button>
-                    </Upload>
+                <div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập tên sản phẩm : </span>
+                        <Input
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={product.name || ''}
+                            onChange={(e) => setProduct({...product, name: e.target.value})}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập mô tả : </span>
+                        <TextArea
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={product.description || ''}
+                            onChange={(e) => setProduct({...product, description: e.target.value})}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập giá tiền : </span>
+                        <Input
+                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            type="text"
+                            value={product.price || ''}
+                            onChange={(e) => setProduct({...product, price: e.target.value})}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập trạng thái : </span>
+                        <Select
+                            key={product.id}
+                            style={{width: 200, marginTop: 10, marginBottom: 10}}
+                            defaultValue={isCreate ? 1 : product.status}
+                            onChange={(e) => setProduct({...product, status: e})}
+                            options={STATUS_OPTIONS}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
+                        <span>Nhập loại : </span>
+                        <Select
+                            key={product.id + 1}
+                            style={{width: 200, marginTop: 10, marginBottom: 10}}
+                            defaultValue={isCreate ? 1 : product.type}
+                            onChange={(e) => setProduct({...product, type: e})}
+                            options={TYPE_OPTIONS}
+                        />
+                    </div>
+                    <div style={{display: "flex", justifyContent: 'center', alignItems: "center", margin: 10}}>
+                        <Upload customRequest={handleUpload} showUploadList={false}>
+                            <Button icon={<UploadOutlined/>}>Tải ảnh lên</Button>
+                        </Upload>
+                    </div>
                 </div>
                 {images && images.map(item => (
                     <div style={{position: 'relative', display: 'inline-block', margin: 10}} key={item.id + 1}>
