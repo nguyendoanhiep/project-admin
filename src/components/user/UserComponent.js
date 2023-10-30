@@ -152,7 +152,7 @@ const UserComponent = () => {
     const handleUpdate = async () => {
         const res = await dispatch(updateUser(user))
         if (res.code === 200) {
-            toast.success('Sửa Tài khoản thành công!', {
+            toast.success('Cập nhập tài khoản thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -161,7 +161,7 @@ const UserComponent = () => {
             setIsLoading(!isLoading)
         }
         if (res.code === 400) {
-            toast.error('Sửa Tài khoản thất bại!', {
+            toast.error('Cập nhập tài khoản thất bại!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,

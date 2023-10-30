@@ -10,7 +10,7 @@ import {
 } from "../../redux/thunk/VoucherThunk";
 import moment from "moment";
 import {toast} from "react-toastify";
-import {getAllCustomer} from "../../redux/thunk/CustomerThunk";
+import {getAllCustomerByVoucherId} from "../../redux/thunk/CustomerThunk";
 
 const {Search} = Input;
 
@@ -75,15 +75,16 @@ const VoucherComponent = () => {
             fixed: 'right',
             render: (text, record) => (
                 <span>
-                    <Button style={{marginLeft: 5, width: 110}} type="primary"
+                    <Button style={{margin: 5, width: 110}} type="primary"
                             onClick={() => openAddOrUpdate(record)}>Edit</Button>
-                    <Button style={{marginLeft: 5, width: 110}} type="primary"
+                    <Button style={{margin: 5, width: 110 ,  backgroundColor: "#00CC00"}} type="primary"
+                             onClick={() => openAddVoucherForCus(record)}> Add Voucher</Button>
+                    <Button style={{margin: 5, width: 110}} type="primary"
                             onClick={() => handleDelete(record)} danger>Delete</Button>
-                    <Button style={{marginLeft: 5, width: 110}} type="primary"
-                            onClick={() => openAddVoucherForCus(record)}> Gán Voucher</Button>
+
                 </span>
             ),
-            width: 120
+            width: 135
         },
     ];
 
@@ -136,15 +137,15 @@ const VoucherComponent = () => {
             render: (text, record) => (
                 <span>
                     {
-                        !numberPhoneList.find(value => value === record.numberPhone) &&
-                        <Button style={{marginLeft: 5, width: 70}} type="primary"
+                        record.voucherId == null &&
+                        <Button style={{marginLeft: 5, width: 70 , backgroundColor: "#00CC00"}} type="primary"
                                 onClick={() => handleAddVoucherForCus(record)}>Chose
                         </Button>
                     }
                     {
-                        numberPhoneList.find(value => value === record.numberPhone) &&
-                        <Button style={{marginLeft: 5, width: 70}} type="primary"
-                                onClick={() => handleRemoveCusForVoucher(record)} danger>Delete
+                        record.voucherId != null &&
+                        <Button style={{marginLeft: 5, width: 70 , backgroundColor: '#FFA500'}} type="primary"
+                                onClick={() => handleRemoveCusForVoucher(record)} >Cancel
                         </Button>
                     }
                 </span>
@@ -176,11 +177,11 @@ const VoucherComponent = () => {
         page: 1,
         size: 10,
         search: '',
-        status: 0
+        voucherId: 0
     });
 
     const voucherList = useSelector((state) => state.voucher.vouchers);
-    const customerList = useSelector((state) => state.customer.customers);
+    const customerList = useSelector((state) => state.customer.customersByVoucherID);
 
     const openAddOrUpdate = (record) => {
         setIsAddOrUpdate(true)
@@ -198,16 +199,20 @@ const VoucherComponent = () => {
     const openAddVoucherForCus = (record) => {
         setIsAddVoucher(true)
         setVoucher(record)
+        const data = {...params, voucherId: record.id}
+        setParamsCus(data)
+        dispatch(getAllCustomerByVoucherId(data))
     }
 
     const handleRemoveCusForVoucher = async (record) => {
         const res = await dispatch(removeVoucherForCustomer(record.numberPhone,voucher.id))
         if( res.code === 200) {
-            toast.success('Xóa Voucher khỏi khách hàng thành công!', {
+            toast.warning('Xóa Voucher khỏi khách hàng thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
             });
+           await dispatch(getAllCustomerByVoucherId(paramsCus))
         }
         if (res.code === 400) {
             toast.error('Không thể Xóa Voucher khỏi khách hàng , đã có lỗi xảy ra!', {
@@ -226,6 +231,7 @@ const VoucherComponent = () => {
                 position: "top-center",
                 autoClose: 2000,
             });
+            await dispatch(getAllCustomerByVoucherId(paramsCus))
         }
         if (res.code === 400) {
             toast.error('Không thể thêm voucher cho khách hàng , đã có lỗi xảy ra!', {
@@ -305,16 +311,14 @@ const VoucherComponent = () => {
 
     }
     const onSearchCus = async (value) => {
-        setParamsCus({...paramsCus, search: value})
+        const data = {...paramsCus, search: value}
+        setParamsCus(data)
+        await dispatch(getAllCustomerByVoucherId(data))
     };
 
     useEffect(() => {
         dispatch(getAllVoucher(params))
     }, [isLoading])
-
-    useEffect(() => {
-        dispatch(getAllCustomer(paramsCus))
-    }, [paramsCus])
 
     return (
         <div style={{position: 'relative'}}>
@@ -452,11 +456,11 @@ const VoucherComponent = () => {
                 <Table
                     rowKey={record => record.id}
                     columns={columnsCus}
-                    dataSource={customerList.content}
+                    dataSource={customerList}
                     pagination={false}
                     bordered
                     style={{
-                        minHeight: 600
+                        minHeight: 500
                     }}
                 />
             </Modal>

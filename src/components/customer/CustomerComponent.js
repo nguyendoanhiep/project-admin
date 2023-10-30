@@ -45,7 +45,7 @@ const CustomerComponent = () => {
             key: 'image.urlImage',
             width: 100,
             render: (text) => {
-                return <Avatar style={{width: 70, height: 70}} src={text && text.urlImage}/>
+                return <Avatar style={{width: 80, height: 80}} src={text && text.urlImage}/>
             }
         },
         {
@@ -125,17 +125,8 @@ const CustomerComponent = () => {
     };
     const handleAddOrUpdate = async () => {
         const res = await dispatch(addOrUpdateCustomer(customer))
-        if (res.code === 200 && isCreate) {
-            toast.success('Thêm Khách hàng thành công!', {
-                className: 'my-toast',
-                position: "top-center",
-                autoClose: 2000,
-            });
-            setIsAddOrUpdate(false);
-            setIsLoading(!isLoading)
-        }
-        if (res.code === 200 && !isCreate) {
-            toast.success('Sửa Khách hàng thành công!', {
+        if (res.code === 200) {
+            toast.success(isCreate ?'Thêm Khách hàng thành công!' : 'Cập nhập thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -144,7 +135,7 @@ const CustomerComponent = () => {
             setIsLoading(!isLoading)
         }
         if (res.code === 400) {
-            toast.error('Thêm Khách hàng thất bại!', {
+            toast.error(isCreate ? 'Đã có lỗi xảy ra , không thể thêm mới !' : 'Đã có lỗi xảy ra , không thể cập nhập !' , {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,

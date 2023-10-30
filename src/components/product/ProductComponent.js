@@ -209,17 +209,8 @@ const ProductComponent = () => {
     const handleAddOrUpdate = async () => {
         const data = {...product, images: images}
         const res = await dispatch(addOrUpdateProduct(data))
-        if (res.code === 200 && isCreate) {
-            toast.success('Thêm Sản phẩm thành công!', {
-                className: 'my-toast',
-                position: "top-center",
-                autoClose: 2000,
-            });
-            setIsAddOrUpdate(false);
-            setIsLoading(!isLoading)
-        }
-        if (res.code === 200 && !isCreate) {
-            toast.success('Sửa Sản phẩm thành công!', {
+        if (res.code === 200) {
+            toast.success(isCreate ? 'Thêm sản phẩm thành công!' : 'Cập nhập sản phẩm thành công!' , {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -228,7 +219,7 @@ const ProductComponent = () => {
             setIsLoading(!isLoading)
         }
         if (res.code === 400) {
-            toast.error('Thêm Sản phẩm thất bại!', {
+            toast.error(isCreate ? 'Thêm sản phẩm thất bại!' : 'Cập nhập sản phẩm thất bại', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
