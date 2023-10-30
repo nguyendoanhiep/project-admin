@@ -1,6 +1,6 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {UploadOutlined, UserOutlined} from '@ant-design/icons';
-import {Dropdown, Space, Layout, Input, Select, Upload, Button, Image, Modal, DatePicker} from 'antd';
+import {Dropdown, Space, Layout, Input, Upload, Button, Image, Modal, DatePicker} from 'antd';
 import logo from '../../env/img/logo.png'
 import {Link, useNavigate} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
@@ -11,7 +11,6 @@ import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
 import {storage} from "../../env/FirebaseConfig";
 import dayjs from "dayjs";
 const {Header} = Layout;
-const jwt = require('jsonwebtoken');
 
 const HeaderComponent = () => {
     const dispatch = useDispatch();
