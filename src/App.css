@@ -3,7 +3,7 @@ html {
 }
 
 body {
-    max-width: 2140px;
+    max-width: 2400px;
     width:calc(100% - 17px) !important;
 
 }

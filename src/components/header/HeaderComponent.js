@@ -10,15 +10,14 @@ import {addOrUpdateCustomer, findCustomerById} from "../../redux/thunk/CustomerT
 import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
 import {storage} from "../../env/FirebaseConfig";
 import dayjs from "dayjs";
-
 const {Header} = Layout;
+const jwt = require('jsonwebtoken');
 
 const HeaderComponent = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const isLoggedIn = JSON.parse(localStorage.getItem('Token'));
-    const [header, payload, signature] = isLoggedIn.split('.');
-    const getUserLogin = JSON.parse(atob(payload));
+    const [getUserLogin , setUserLogin] = useState({});
     const [customer, setCustomer] = useState({})
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const getCustomer = useSelector((state) => state.customer.customer);
@@ -102,12 +101,16 @@ const HeaderComponent = () => {
     }
 
     useEffect(() => {
+        if(isLoggedIn){
+            const [header, payload, signature] = isLoggedIn.split('.');
+            setUserLogin(JSON.parse(atob(payload)))
+        }
         setCustomer(getCustomer)
-    }, [getCustomer]);
+    }, [getCustomer,isLoggedIn]);
 
     return (
         <Header className='container' style={{
-            marginBottom: '20px',
+            marginBottom: '40px',
             height: 80,
             display: 'flex',
             justifyContent: 'space-between',
