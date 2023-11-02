@@ -58,7 +58,6 @@ export const addVoucherForCustomer = (numberPhone , voucherId) => async () => {
                 voucherId : voucherId
             }
         });
-        console.log(res)
         return res.data
     } catch (error) {
         console.log(error);
@@ -73,7 +72,6 @@ export const removeVoucherForCustomer = (numberPhone , voucherId) => async () =>
                 voucherId : voucherId
             }
         });
-        console.log(res)
         return res.data
     } catch (error) {
         console.log(error);

@@ -1,4 +1,4 @@
-import {Button, DatePicker, Input, Modal, Pagination, Select, Table} from "antd";
+import {Button, DatePicker, Form, Input, Modal, Pagination, Select, Table} from "antd";
 import {useDispatch, useSelector} from "react-redux";
 import React, {useEffect, useState} from "react";
 import {
@@ -8,7 +8,6 @@ import {
     getAllVoucher,
     removeVoucherForCustomer
 } from "../../redux/thunk/VoucherThunk";
-import moment from "moment";
 import {toast} from "react-toastify";
 import {getAllCustomerByVoucherId} from "../../redux/thunk/CustomerThunk";
 import dayjs from "dayjs";
@@ -74,6 +73,7 @@ const VoucherComponent = () => {
             dataIndex: '',
             key: 'x',
             fixed: 'right',
+            align: 'center',
             render: (text, record) => (
                 <span>
                     <Button style={{margin: 5, width: 110}} type="primary"
@@ -135,16 +135,17 @@ const VoucherComponent = () => {
             dataIndex: '',
             key: 'x',
             fixed: 'right',
+            align: 'center',
             render: (text, record) => (
                 <span>
                     {
-                        record.voucherId == null &&
+                        record.result === 0 &&
                         <Button style={{marginLeft: 5, width: 70, backgroundColor: "#00CC00"}} type="primary"
                                 onClick={() => handleAddVoucherForCus(record)}>Chose
                         </Button>
                     }
                     {
-                        record.voucherId != null &&
+                        record.result === 1 &&
                         <Button style={{marginLeft: 5, width: 70, backgroundColor: '#FFA500'}} type="primary"
                                 onClick={() => handleRemoveCusForVoucher(record)}>Cancel
                         </Button>
@@ -162,12 +163,11 @@ const VoucherComponent = () => {
     ];
 
     const dispatch = useDispatch();
-    const [voucher, setVoucher] = useState({})
-    const [numberPhoneList, setNumberPhoneList] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isAddVoucher, setIsAddVoucher] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
+    const [voucherId, setVoucherId] = useState();
     const [params, setParams] = useState({
         page: 1,
         size: 10,
@@ -183,32 +183,33 @@ const VoucherComponent = () => {
 
     const voucherList = useSelector((state) => state.voucher.vouchers);
     const customerList = useSelector((state) => state.customer.customersByVoucherID);
-
+    const [voucherForm] = Form.useForm();
     const openAddOrUpdate = (record) => {
         setIsAddOrUpdate(true)
         if (record) {
             setIsCreate(false)
-            setVoucher(record);
+            voucherForm.setFieldsValue(record);
         } else {
             setIsCreate(true)
-            setVoucher({
-                status: 1
-            });
+            voucherForm.setFieldsValue({
+                status : 1,
+                voucherStartDate : dayjs().format("DD-MM-YYYY HH:mm:ss"),
+                voucherExpirationDate:dayjs().format("DD-MM-YYYY HH:mm:ss")
+            })
         }
-    };
-
+    }
     const openAddVoucherForCus = (record) => {
+        setVoucherId(record.id)
         setIsAddVoucher(true)
-        setVoucher(record)
         const data = {...params, voucherId: record.id}
         setParamsCus(data)
         dispatch(getAllCustomerByVoucherId(data))
     }
 
     const handleRemoveCusForVoucher = async (record) => {
-        const res = await dispatch(removeVoucherForCustomer(record.numberPhone, voucher.id))
+        const res = await dispatch(removeVoucherForCustomer(record.numberPhone, voucherId))
         if (res.code === 200) {
-            toast.warning('Xóa Voucher khỏi khách hàng thành công!', {
+            toast.warning('Xóa khách hàng khỏi voucher thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -216,7 +217,7 @@ const VoucherComponent = () => {
             await dispatch(getAllCustomerByVoucherId(paramsCus))
         }
         if (res.code === 400) {
-            toast.error('Không thể Xóa Voucher khỏi khách hàng , đã có lỗi xảy ra!', {
+            toast.error('Không thể xóa khách hàng khỏi voucher , đã có lỗi xảy ra!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -225,7 +226,7 @@ const VoucherComponent = () => {
     }
 
     const handleAddVoucherForCus = async (record) => {
-        const res = await dispatch(addVoucherForCustomer(record.numberPhone, voucher.id))
+        const res = await dispatch(addVoucherForCustomer(record.numberPhone, voucherId))
         if (res.code === 200) {
             toast.success('Thêm Voucher cho khách hàng thành công!', {
                 className: 'my-toast',
@@ -246,11 +247,10 @@ const VoucherComponent = () => {
 
     const closeAddVoucherForCus = () => {
         setIsAddVoucher(false)
-        setNumberPhoneList([])
     }
-    const closeAddOrUpdate = () => {
+    const closeAddOrUpdate = async  () => {
+        await voucherForm.resetFields()
         setIsAddOrUpdate(false)
-        setVoucher({})
     }
     const handleDelete = async (record) => {
         const res = await dispatch(deleteVoucher(record.id))
@@ -276,25 +276,17 @@ const VoucherComponent = () => {
         setParams(newParams)
         dispatch(getAllVoucher(newParams))
     };
-    const handleAddOrUpdate = async () => {
-        const res = await dispatch(addOrUpdateVoucher(voucher))
-        if (res.code === 200 && isCreate) {
-            toast.success('Thêm Voucher thành công!', {
+    const handleAddOrUpdate = async (values) => {
+        const res = await dispatch(addOrUpdateVoucher(values))
+        if (res.code === 200) {
+            toast.success(isCreate ? 'Thêm Voucher thành công!' : 'Sửa Voucher thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
             });
             setIsAddOrUpdate(false);
             setIsLoading(!isLoading)
-        }
-        if (res.code === 200 && !isCreate) {
-            toast.success('Sửa Voucher thành công!', {
-                className: 'my-toast',
-                position: "top-center",
-                autoClose: 2000,
-            });
-            setIsAddOrUpdate(false);
-            setIsLoading(!isLoading)
+            await voucherForm.resetFields()
         }
         if (res.code === 400) {
             toast.error('Thêm Voucher thất bại!', {
@@ -377,80 +369,120 @@ const VoucherComponent = () => {
                     alignSelf: 'flex-end'
                 }}/>
             <Modal title={isCreate ? "Thêm mới Voucher" : "Chỉnh sửa Voucher"} open={isAddOrUpdate}
-                   onOk={handleAddOrUpdate}
-                   onCancel={closeAddOrUpdate}>
-                <div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập tên voucher : </span>
+                   footer={null}
+                   closeIcon={null}>
+                <Form
+                    form={voucherForm}
+                    name="voucherForm"
+                    labelCol={{span: 8}}
+                    wrapperCol={{span: 18}}
+                    onFinish={handleAddOrUpdate}
+                >
+                    <Form.Item
+                        name="id"
+                        hidden={true}>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập tên voucher : "
+                        name="name"
+                        rules={[
+                            {required: true, message: 'Please input voucher name!'},
+                        ]}>
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={voucher.name || ''}
-                            onChange={(e) => setVoucher({...voucher, name: e.target.value})}
                         />
-                    </div>
+                    </Form.Item>
                     {
                         !isCreate &&
-                        <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                            <span>Nhập mã voucher : </span>
+                        <Form.Item
+                            label="Nhập mã voucher : "
+                            name="code"
+                            rules={[
+                                {required: true, message: 'Please input code!'},
+                            ]}>
                             <Input
-                                style={{width: 300, marginTop: 10, marginBottom: 10}}
+                                style={{width: 300}}
                                 type="text"
-                                value={voucher.code || ''}
-                                onChange={(e) => setVoucher({...voucher, code: e.target.value})}
                             />
-                        </div>
+                        </Form.Item>
                     }
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập giá trị : </span>
-                    <Input
-                        style={{width: 300, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        value={voucher.value || ''}
-                        onChange={(e) => setVoucher({...voucher, value: e.target.value})}
-                    />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập số lượng : </span>
-                    <Input
-                        style={{width: 300, marginTop: 10, marginBottom: 10}}
-                        type="text"
-                        value={voucher.quantity}
-                        onChange={(e) => setVoucher({...voucher, quantity: e.target.value || 0})}
-                    />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập trạng thái : </span>
-                    <Select
-                        key={voucher.id}
-                        style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        defaultValue={isCreate ? 1 : voucher.status}
-                        onChange={(e) => setVoucher({...voucher, status: e})}
-                        options={STATUS_OPTIONS}
-                    />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập ngày bắt đầu : </span>
-                    <DatePicker
-                        style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        value={voucher.voucherStartDate ? dayjs(voucher.voucherStartDate, "DD-MM-YYYY HH:mm:ss") : null}
-                        onChange={(e) => {
-                            setVoucher({...voucher, voucherStartDate: e && e.format("DD-MM-YYYY HH:mm:ss")})
-                        }}
-                        showTime/>
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập ngày hết hạn : </span>
-                    <DatePicker
-                        style={{width: 200, marginTop: 10, marginBottom: 10}}
-                        value={voucher.voucherExpirationDate ? dayjs(voucher.voucherExpirationDate, "DD-MM-YYYY HH:mm:ss") : null}
-                        onChange={(e) => setVoucher({
-                            ...voucher,
-                            voucherExpirationDate: e && e.format("DD-MM-YYYY HH:mm:ss")
-                        })}
-                        showTime/>
-                    </div>
-                </div>
+                    <Form.Item
+                        label="Nhập giá trị : "
+                        name="value"
+                        rules={[
+                            {required: true, message: 'Please input value!'},
+                        ]}>
+                        <Input
+                            style={{width: 300}}
+                            type="text"
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập số lượng : "
+                        name="quantity"
+                        rules={[
+                            {required: true, message: 'Please input quantity!'},
+                        ]}>
+                        <Input
+                            style={{width: 300}}
+                            type="text"
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập trạng thái : "
+                        name="status"
+                        rules={[
+                            {required: true, message: 'Please input status!'},
+                        ]}>
+                        <Select
+                            style={{width: 200}}
+                            options={STATUS_OPTIONS}
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập ngày bắt đầu : "
+                        name="voucherStartDate"
+                        getValueProps={(i) => ({value: dayjs(i, "DD-MM-YYYY HH:mm:ss")})}
+                    >
+                        <DatePicker
+                            style={{width: 200}}
+                            format="DD-MM-YYYY HH:mm:ss"
+                            onChange={(value) => {
+                                return voucherForm.setFieldsValue({
+                                    voucherStartDate: dayjs(value).format("DD-MM-YYYY HH:mm:ss")
+                                })
+                            }}
+                            showTime/>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập ngày hết hạn : "
+                        name="voucherExpirationDate"
+                        getValueProps={(i) => ({value: dayjs(i, "DD-MM-YYYY HH:mm:ss")})}
+                    >
+                        <DatePicker
+                            style={{width: 200}}
+                            format="DD-MM-YYYY HH:mm:ss"
+                            onChange={(value) => {
+                                return voucherForm.setFieldsValue({
+                                    voucherExpirationDate: dayjs(value).format("DD-MM-YYYY HH:mm:ss")
+                                })
+                            }}
+                            showTime/>
+                    </Form.Item>
+                    <Form.Item
+                        wrapperCol={{
+                            offset: 15,
+                            span: 16,
+                        }}>
+                        <Button type="primary" htmlType="submit" style={{margin: 5}}>
+                            Submit
+                        </Button>
+                        <Button htmlType="button" onClick={closeAddOrUpdate} style={{margin: 5}}>
+                            Cancel
+                        </Button>
+                    </Form.Item>
+                </Form>
             </Modal>
             <Modal width="800px"
                    open={isAddVoucher}

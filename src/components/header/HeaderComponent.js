@@ -41,7 +41,7 @@ const HeaderComponent = () => {
     };
     const items = [
         {
-            label: <Link to="/">Edit Profile</Link>,
+            label: 'Edit Profile',
             key: '0',
             onClick: openAddOrUpdate
         },

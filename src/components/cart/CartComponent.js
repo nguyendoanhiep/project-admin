@@ -67,6 +67,7 @@ const CartComponent = () => {
             dataIndex: '',
             key: 'x',
             fixed: 'right',
+            align:'center',
             render: (record) => (
                 <span>
                  <Button style={{marginLeft: 5, width: 40, backgroundColor: "#00CC00"}} type="primary"
@@ -158,6 +159,7 @@ const CartComponent = () => {
             });
             sessionStorage.removeItem("cartItems");
             setIsLoading(!isLoading)
+            setVoucher({})
             return;
         }
         if (res.code === 400) {

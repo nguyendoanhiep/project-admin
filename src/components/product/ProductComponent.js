@@ -11,7 +11,7 @@ import {
     getImageByProductId,
     setPriorityImage
 } from "../../redux/thunk/ImageThunk";
-import {Image, Button, Input, Modal, Pagination, Select, Table, Upload} from 'antd';
+import {Image, Button, Input, Modal, Pagination, Select, Table, Upload, Form} from 'antd';
 import {toast} from "react-toastify";
 import {CheckOutlined, DeleteOutlined, UploadOutlined} from "@ant-design/icons";
 import {storage} from "../../env/FirebaseConfig";
@@ -95,6 +95,7 @@ const ProductComponent = () => {
             dataIndex: '',
             key: 'x',
             fixed: 'right',
+            align: 'center',
             render: (record) => (
                 <span>
                     <Button style={{marginLeft: 5, marginBottom: 5, width: 100}}
@@ -131,7 +132,7 @@ const ProductComponent = () => {
 
 
     const dispatch = useDispatch();
-    const [product, setProduct] = useState({})
+    const [productId, setProductId] = useState()
     const cartItems = JSON.parse(sessionStorage.getItem("cartItems")) || []
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
@@ -147,6 +148,8 @@ const ProductComponent = () => {
     const oldImages = useSelector((state) => state.image.images);
     const [newImages, setNewImages] = useState([])
     const [images, setImages] = useState([])
+    const [productForm] = Form.useForm();
+
     const addToCart = (productOfCart) => {
         const product = cartItems && cartItems.find(item => item.id === productOfCart.id)
         if (product) {
@@ -167,22 +170,19 @@ const ProductComponent = () => {
         setNewImages([])
         setIsAddOrUpdate(true)
         if (record) {
+            setProductId(record.id)
             dispatch(getImageByProductId(record.id))
+            productForm.setFieldsValue(record)
             setIsCreate(false)
-            setProduct(record);
+
         } else {
             dispatch(clearImages())
             setIsCreate(true)
-            setProduct({
-                status: 1,
-                type: 2
-            });
         }
     };
 
     const closeAddOrUpdate = () => {
         setIsAddOrUpdate(false)
-        setProduct({})
     }
     const handleDelete = async (record) => {
         const res = await dispatch(deleteProduct(record.id))
@@ -208,9 +208,8 @@ const ProductComponent = () => {
         setParams(newParams)
         dispatch(getAllProduct(newParams))
     };
-    const handleAddOrUpdate = async () => {
-        const data = {...product, images: images}
-        const res = await dispatch(addOrUpdateProduct(data))
+    const handleAddOrUpdate = async (values) => {
+        const res = await dispatch(addOrUpdateProduct(values))
         if (res.code === 200) {
             toast.success(isCreate ? 'Thêm sản phẩm thành công!' : 'Cập nhập sản phẩm thành công!', {
                 className: 'my-toast',
@@ -229,6 +228,7 @@ const ProductComponent = () => {
         }
     }
     const onDeleteImage = async (id) => {
+        setNewImages(newImages && newImages.filter(value => value.id !== id))
         const res = await dispatch(deleteImageOfProduct(id))
         if (res.data.code === 200) {
             toast.success('Xóa ảnh thành công!', {
@@ -236,19 +236,19 @@ const ProductComponent = () => {
                 position: "top-center",
                 autoClose: 2000,
             });
-            dispatch(getImageByProductId(product.id))
+            dispatch(getImageByProductId(productId))
             setIsLoading(!isLoading)
         }
     }
     const onSetPriorityImage = async (id) => {
-        const res = await dispatch(setPriorityImage(id, product.id))
+        const res = await dispatch(setPriorityImage(id, productId))
         if (res.data.code === 200) {
             toast.success('Chọn ảnh thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
             });
-            dispatch(getImageByProductId(product.id))
+            dispatch(getImageByProductId(productId))
             setIsLoading(!isLoading)
         }
     }
@@ -264,17 +264,13 @@ const ProductComponent = () => {
     }, [isLoading])
 
     useEffect(() => {
-        setImages([...oldImages, ...newImages])
+        setImages([...newImages, ...oldImages])
+        productForm.setFieldsValue({
+            images: [...newImages, ...oldImages]
+        })
     }, [oldImages, newImages])
 
     const handleUpload = async ({file, onSuccess, onError}) => {
-        if (product == null) {
-            toast.success('Thêm ảnh thành công!', {
-                className: 'my-toast',
-                position: "top-center",
-                autoClose: 2000,
-            });
-        }
         const storageRef = ref(storage, "images/" + file.name);
         try {
             const uploadTask = uploadBytesResumable(storageRef, file);
@@ -300,7 +296,7 @@ const ProductComponent = () => {
                                 position: "top-center",
                                 autoClose: 2000,
                             });
-                            setNewImages([...newImages, res.data])
+                            setNewImages([res.data, ...newImages])
                         }
                     });
                 }
@@ -370,97 +366,129 @@ const ProductComponent = () => {
                     alignSelf: 'flex-end'
                 }}/>
             <Modal title={isCreate ? "Thêm mới sản phẩm" : "Chỉnh sửa sản phẩm"} open={isAddOrUpdate}
-                   onOk={handleAddOrUpdate}
-                   onCancel={closeAddOrUpdate}>
-                <div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập tên sản phẩm : </span>
+                   closeIcon={null}
+                   footer={null}>
+                <Form
+                    form={productForm}
+                    name="productForm"
+                    labelCol={{span: 8}}
+                    wrapperCol={{span: 18}}
+                    onFinish={handleAddOrUpdate}
+                >
+                    <Form.Item
+                        name="id"
+                        hidden={true}>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập tên sản phẩm : "
+                        name="name"
+                        rules={[
+                            {required: true, message: 'Please input  name!'},
+                        ]}>
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={product.name || ''}
-                            onChange={(e) => setProduct({...product, name: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập mô tả : </span>
-                        <TextArea
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
-                            type="text"
-                            value={product.description || ''}
-                            onChange={(e) => setProduct({...product, description: e.target.value})}
-                        />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập giá tiền : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập mô tả : "
+                        name="description">
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={product.price || ''}
-                            onChange={(e) => setProduct({...product, price: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập trạng thái : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập giá tiền : "
+                        name="price"
+                        rules={[
+                            {required: true, message: 'Please input price!'},
+                        ]}>
+                        <Input
+                            style={{width: 300}}
+                            type="text"
+                        />
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập trạng thái : "
+                        name="status"
+                        initialValue={isCreate && 1}
+                        rules={[
+                            {required: true, message: 'Please input status!'},
+                        ]}>
                         <Select
-                            key={product.id}
-                            style={{width: 200, marginTop: 10, marginBottom: 10}}
-                            defaultValue={isCreate ? 1 : product.status}
-                            onChange={(e) => setProduct({...product, status: e})}
+                            style={{width: 200}}
                             options={STATUS_OPTIONS}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập loại : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập loại : "
+                        name="type"
+                        initialValue={isCreate && 1}
+                        rules={[
+                            {required: true, message: 'Please input status!'},
+                        ]}>
                         <Select
-                            key={product.id + 1}
-                            style={{width: 200, marginTop: 10, marginBottom: 10}}
-                            defaultValue={isCreate ? 1 : product.type}
-                            onChange={(e) => setProduct({...product, type: e})}
+                            style={{width: 200}}
                             options={TYPE_OPTIONS}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'center', alignItems: "center", margin: 10}}>
+                    </Form.Item>
+                    <Form.Item
+                        name="images"
+                        label="Tải ảnh lên">
                         <Upload customRequest={handleUpload} showUploadList={false}>
-                            <Button icon={<UploadOutlined/>}>Tải ảnh lên</Button>
+                            <Button icon={<UploadOutlined/>}>upload</Button>
                         </Upload>
-                    </div>
-                </div>
-                {images && images.map(item => (
-                    <div style={{position: 'relative', display: 'inline-block', margin: 10}} key={item.id + 1}>
-                        <Image src={item.urlImage}
-                               style={{
-                                   width: 135,
-                                   height: 135,
-                                   borderRadius: 10,
-                                   border: item.priority === 1 ? '2px solid #00CC00' : ''
-                               }}/>
-                        <DeleteOutlined
-                            style={{
-                                position: 'absolute',
-                                top: 5,
-                                right: 2,
-                                fontSize: 22,
-                                color: 'red',
-                                cursor: 'pointer',
-                            }}
-                            onClick={() => onDeleteImage(item.id)}
-                        />
-                        {!newImages.find(value => value.id === item.id) &&
-                            <CheckOutlined
+                    </Form.Item>
+
+                    {images && images.map(item => (
+                        <div style={{position: 'relative', display: 'inline-block', margin: 10}} key={item.id + 1}>
+                            <Image src={item.urlImage}
+                                   style={{
+                                       width: 135,
+                                       height: 135,
+                                       borderRadius: 10,
+                                       border: item.priority === 1 ? '2px solid #00CC00' : ''
+                                   }}/>
+                            <DeleteOutlined
                                 style={{
                                     position: 'absolute',
                                     top: 5,
-                                    right: 30,
+                                    right: 2,
                                     fontSize: 22,
-                                    color: '#00CC00',
+                                    color: 'red',
                                     cursor: 'pointer',
                                 }}
-                                onClick={() => onSetPriorityImage(item.id)}
-                            />}
-                    </div>
-                ))
-                }
+                                onClick={() => onDeleteImage(item.id)}
+                            />
+                            {!newImages.find(value => value.id === item.id) &&
+                                <CheckOutlined
+                                    style={{
+                                        position: 'absolute',
+                                        top: 5,
+                                        right: 30,
+                                        fontSize: 22,
+                                        color: '#00CC00',
+                                        cursor: 'pointer',
+                                    }}
+                                    onClick={() => onSetPriorityImage(item.id)}
+                                />}
+                        </div>
+                    ))
+                    }
+                    <Form.Item
+                        wrapperCol={{
+                            offset: 15,
+                            span: 16,
+                        }}>
+                        <Button type="primary" htmlType="submit" style={{margin: 5}}>
+                            Submit
+                        </Button>
+                        <Button htmlType="button" onClick={closeAddOrUpdate} style={{margin: 5}}>
+                            Cancel
+                        </Button>
+                    </Form.Item>
+                </Form>
             </Modal>
         </div>
 

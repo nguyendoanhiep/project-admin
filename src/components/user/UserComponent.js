@@ -1,8 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
-import {Button, Input, Modal, Pagination, Select, Table} from 'antd';
+import {Button, Form, Input, Modal, Pagination, Select, Table} from 'antd';
 import {getAllUser, registerUser, updateUser} from "../../redux/thunk/UserThunk";
 import {toast} from "react-toastify";
+import {deleteVoucher} from "../../redux/thunk/VoucherThunk";
+import dayjs from "dayjs";
 
 const {Search} = Input;
 const UserComponent = () => {
@@ -67,6 +69,7 @@ const UserComponent = () => {
             dataIndex: '',
             key: 'x',
             fixed: 'right',
+            align: 'center',
             render: (text, record) => (
                 <span>
                  <Button style={{marginLeft: 5, width: 70}} type="primary"
@@ -75,7 +78,7 @@ const UserComponent = () => {
                          onClick={() => handleDelete(record)} danger>Delete</Button>
                 </span>
             ),
-            width: 150
+            width: 140
         },
     ];
 
@@ -90,9 +93,6 @@ const UserComponent = () => {
     ]
 
     const dispatch = useDispatch();
-    const [user, setUser] = useState({})
-    const [passwordMatch, setPasswordMatch] = useState(true);
-    const [confirmPassword, setConfirmPassword] = useState('')
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
     const [isLoading, setIsLoading] = useState(false)
@@ -103,34 +103,36 @@ const UserComponent = () => {
         status: 0
     });
     const userList = useSelector((state) => state.user.users);
-
+    const [userForm] = Form.useForm();
     const openAddOrUpdate = (record) => {
-        setConfirmPassword("")
         setIsAddOrUpdate(true)
         if (record) {
+            userForm.setFieldsValue({
+                id: record.id,
+                username: record.username,
+                numberPhone: record.numberPhone,
+                password: record.password,
+                roles: record.roles.map(value => value.name),
+                status: record.status,
+                createDate: record.createDate
+            });
             setIsCreate(false)
-            setUser({...record, roles: record.roles && record.roles.map(value => value.name)});
         } else {
             setIsCreate(true)
-            setUser({
-                status: 1
-            });
         }
     };
     const closeAddOrUpdate = () => {
-        setPasswordMatch(true);
         setIsAddOrUpdate(false)
-        setUser({})
+        userForm.resetFields()
     }
-    const handleDelete = (record) => {
-    };
+
     const onSearch = async (value) => {
         const newParams = {...params, search: value}
         setParams(newParams)
         dispatch(getAllUser(newParams))
     };
     const handleAdd = async () => {
-        const res = await dispatch(registerUser(user))
+        const res = await dispatch(registerUser(userForm.getFieldsValue()))
         if (res.code === 200) {
             toast.success('Thêm Tài khoản thành công!', {
                 className: 'my-toast',
@@ -148,9 +150,10 @@ const UserComponent = () => {
             });
         }
     }
-
+    const handleDelete = async () => {
+    };
     const handleUpdate = async () => {
-        const res = await dispatch(updateUser(user))
+        const res = await dispatch(updateUser(userForm.getFieldsValue()))
         if (res.code === 200) {
             toast.success('Cập nhập tài khoản thành công!', {
                 className: 'my-toast',
@@ -175,13 +178,6 @@ const UserComponent = () => {
         dispatch(getAllUser(newParams))
 
     }
-    const handleConfirmPasswordChange = (e) => {
-        if (user.password === e) {
-            setPasswordMatch(true);
-        } else {
-            setPasswordMatch(false);
-        }
-    };
 
     useEffect(() => {
         dispatch(getAllUser(params))
@@ -243,81 +239,108 @@ const UserComponent = () => {
                     alignSelf: 'flex-end'
                 }}/>
             <Modal title={isCreate ? "Thêm tài khoản mới" : "Chỉnh sửa thông tin"} open={isAddOrUpdate}
-                   onOk={isCreate ? handleAdd : handleUpdate}
-                   onCancel={closeAddOrUpdate}>
-                <div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập tên tài khoản : </span>
+                   footer={null}
+                   closeIcon={null}>
+                <Form
+                    form={userForm}
+                    onFinish={isCreate ? handleAdd : handleUpdate}
+                    name="user"
+                    labelCol={{span: 8}}
+                    wrapperCol={{span: 12}}>
+                    <Form.Item
+                        name="id"
+                        hidden={true}/>
+                    <Form.Item
+                        name="createDate"
+                        initialValue={isCreate && dayjs().format("DD-MM-YYYY HH:mm:ss")}
+                        hidden={true}/>
+                    <Form.Item
+                        label="Nhập tên tài khoản : "
+                        name="username"
+                        rules={[
+                            {required: true, message: 'Please input username!'},
+                        ]}>
                         <Input
-                            disabled={user.id}
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={user.username || ''}
-                            onChange={(e) => setUser({...user, username: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập số điện thoại : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập số điện thoại : "
+                        name="numberPhone"
+                        rules={[
+                            {required: true, message: 'Please input number phone!'},
+                        ]}>
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={user.numberPhone || ''}
-                            onChange={(e) => setUser({...user, numberPhone: e.target.value})}
                         />
-                    </div>
+                    </Form.Item>
                     {isCreate &&
                         <>
-                            <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                                <span>Nhập password : </span>
-                                <Input
-                                    style={{width: 300, marginTop: 10, marginBottom: 10}}
-                                    type="password"
-                                    value={user.password || ''}
-                                    onChange={(e) => setUser({...user, password: e.target.value})}
+                            <Form.Item
+                                label="Nhập mật khẩu : "
+                                name="password"
+                                rules={[
+                                    {required: true, message: 'Please input password!'},
+                                ]}>
+                                <Input.Password
+                                    style={{width: 300}}
+                                    type="text"
                                 />
-                            </div>
-                            <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                                <span>Nhập lại password : </span>
-                                <Input
-                                    style={{width: 300, marginTop: 10, marginBottom: 10}}
-                                    type="password"
-                                    value={confirmPassword || ''}
-                                    onChange={(e) => {
-                                        setConfirmPassword(e.target.value)
-                                        handleConfirmPasswordChange(e.target.value)
-                                    }}
+                            </Form.Item>
+                            <Form.Item
+                                label="Xác nhận mật khẩu : "
+                                name="confirmPassword"
+                                rules={[
+                                    {required: true, message: 'Please input confirm password!'},
+                                ]}>
+                                <Input.Password
+                                    style={{width: 300}}
+                                    type="text"
                                 />
-                                {!passwordMatch && (
-                                    <p style={{color: 'red'}}>Mật khẩu và xác nhận mật khẩu không khớp.</p>
-                                )}
-                            </div>
+                            </Form.Item>
                         </>
                     }
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Phân quyền : </span>
+                    <Form.Item
+                        label="Nhập roles : "
+                        name="roles"
+                        initialValue={isCreate && ["ROLE_USER"]}
+                        rules={[
+                            {required: true, message: 'Please input roles!'},
+                        ]}>
                         <Select
-                            key={user.id + 1}
                             mode="multiple"
                             allowClear
                             style={{width: 300}}
-                            value={user.roles && user.roles}
-                            onChange={(e) => {
-                                setUser({...user, roles: e})
-                            }}
                             options={ROLES_OPTIONS}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Chọn trạng thái : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập trạng thái : "
+                        name="status"
+                        initialValue={isCreate && 1}
+                        rules={[
+                            {required: true, message: 'Please input status!'},
+                        ]}>
                         <Select
-                            key={user.id}
-                            style={{width: 200, marginTop: 10, marginBottom: 10}}
-                            value={user.status ? user.status : 1}
-                            onChange={(e) => setUser({...user, status: e})}
+                            style={{width: 200}}
                             options={STATUS_OPTIONS}
                         />
-                    </div>
-                </div>
+                    </Form.Item>
+                    <Form.Item
+                        wrapperCol={{
+                            offset: 15,
+                            span: 16,
+                        }}>
+                        <Button type="primary" htmlType="submit" style={{margin: 5}}>
+                            Submit
+                        </Button>
+                        <Button htmlType="button" onClick={closeAddOrUpdate} style={{margin: 5}}>
+                            Cancel
+                        </Button>
+                    </Form.Item>
+                </Form>
             </Modal>
         </div>
 

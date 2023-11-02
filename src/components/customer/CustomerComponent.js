@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useDispatch, useSelector} from "react-redux";
-import {Avatar, Button, DatePicker, Image, Input, Modal, Pagination, Select, Table, Upload} from 'antd';
+import {Avatar, Button, DatePicker, Form, Image, Input, Modal, Pagination, Select, Table, Upload} from 'antd';
 import {addOrUpdateCustomer, getAllCustomer} from "../../redux/thunk/CustomerThunk";
 import {toast} from "react-toastify";
 import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
@@ -70,6 +70,7 @@ const CustomerComponent = () => {
             dataIndex: '',
             key: 'x',
             fixed: 'right',
+            align: 'center',
             render: (text, record) => (
                 <span>
                  <Button style={{margin: 5, width: 90}} type="primary"
@@ -89,10 +90,12 @@ const CustomerComponent = () => {
     ];
     const customerList = useSelector((state) => state.customer.customers);
     const dispatch = useDispatch();
-    const [customer, setCustomer] = useState({})
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
     const [isCreate, setIsCreate] = useState(false);
     const [isLoading, setIsLoading] = useState(false)
+    const [customerForm] = Form.useForm();
+    const [urlImage, setUrlImage] = useState('')
+
     const [params, setParams] = useState({
         page: 1,
         size: 10,
@@ -104,18 +107,17 @@ const CustomerComponent = () => {
     const openAddOrUpdate = (record) => {
         setIsAddOrUpdate(true)
         if (record) {
+            customerForm.setFieldsValue(record)
+            setUrlImage(record.urlImage)
             setIsCreate(false)
-            setCustomer(record);
         } else {
             setIsCreate(true)
-            setCustomer({
-                status: 1
-            });
         }
     };
     const closeAddOrUpdate = () => {
         setIsAddOrUpdate(false)
-        setCustomer({})
+        setUrlImage('')
+        customerForm.resetFields()
     }
     const handleDelete = (record) => {
     };
@@ -125,7 +127,7 @@ const CustomerComponent = () => {
         dispatch(getAllCustomer(newParams))
     };
     const handleAddOrUpdate = async () => {
-        const res = await dispatch(addOrUpdateCustomer(customer))
+        const res = await dispatch(addOrUpdateCustomer(customerForm.getFieldsValue()));
         if (res.code === 200) {
             toast.success(isCreate ? 'Thêm Khách hàng thành công!' : 'Cập nhập thành công!', {
                 className: 'my-toast',
@@ -134,8 +136,7 @@ const CustomerComponent = () => {
             });
             setIsAddOrUpdate(false);
             setIsLoading(!isLoading)
-        }
-        if (res.code === 400) {
+        } else {
             toast.error(isCreate ? 'Đã có lỗi xảy ra , không thể thêm mới !' : 'Đã có lỗi xảy ra , không thể cập nhập !', {
                 className: 'my-toast',
                 position: "top-center",
@@ -164,7 +165,10 @@ const CustomerComponent = () => {
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref).then(async (url) => {
                         onSuccess();
-                        setCustomer({...customer, urlImage: url})
+                        setUrlImage(url)
+                        customerForm.setFieldsValue({
+                            urlImage: url
+                        })
                     });
                 }
             );
@@ -230,92 +234,125 @@ const CustomerComponent = () => {
                     alignSelf: 'flex-end'
                 }}/>
             <Modal title={isCreate ? "Thêm khách hàng mới" : "Chỉnh sửa thông tin"} open={isAddOrUpdate}
-                   onOk={handleAddOrUpdate}
-                   onCancel={closeAddOrUpdate}>
-                <div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <div> Nhập họ tên :</div>
+                   footer={null}
+                   closeIcon={null}>
+                <Form
+                    form={customerForm}
+                    onFinish={handleAddOrUpdate}
+                    name="customerForm"
+                    labelCol={{span: 8}}
+                    wrapperCol={{span: 18}}>
+                    <Form.Item
+                        name="id"
+                        hidden={true}>
+                    </Form.Item>
+                    <Form.Item
+                        label=" Nhập họ và tên : "
+                        name="name"
+                    >
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={customer.name || ''}
-                            onChange={(e) => setCustomer({...customer, name: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span> Nhập Số điện thoại : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label=" Nhập số điện thoại : "
+                        name="numberPhone"
+                        rules={[
+                            {required: true, message: 'Please input number phone!'},
+                        ]}>
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={customer.numberPhone || ''}
-                            onChange={(e) => setCustomer({...customer, numberPhone: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span> Nhập Email : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label=" Nhập email : "
+                        name="email">
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={customer.email || ''}
-                            onChange={(e) => setCustomer({...customer, email: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span> Nhập địa chỉ : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label=" Nhập địa chỉ : "
+                        name="address">
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={customer.address || ''}
-                            onChange={(e) => setCustomer({...customer, address: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span> Nhập điểm thưởng : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label=" Nhập điểm thưởng : "
+                        name="loyaltyPoints">
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={customer.loyaltyPoints || ''}
-                            onChange={(e) => setCustomer({...customer, loyaltyPoints: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập ngày sinh : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập ngày sinh : "
+                        name="dateOfBirth"
+                        initialValue={isCreate && dayjs().format("DD-MM-YYYY")}
+                        getValueProps={(i) => ({value: dayjs(i ? i : dayjs(), "DD-MM-YYYY")})}
+                    >
                         <DatePicker
-                            style={{width: 200, marginTop: 10, marginBottom: 10,}}
-                            value={customer.dateOfBirth ? dayjs(customer.dateOfBirth, "DD-MM-YYYY") : null}
-                            onChange={(e) => setCustomer({
-                                ...customer, dateOfBirth: e && e.format("DD-MM-YYYY")
-                            })}/>
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Chọn trạng thái : </span>
+                            style={{width: 200}}
+                            format="DD-MM-YYYY"
+                            onChange={(value) => {
+                                return customerForm.setFieldsValue({
+                                    dateOfBirth: dayjs(value).format("DD-MM-YYYY")
+                                })
+                            }}
+                            showTime/>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập trạng thái : "
+                        name="status"
+                        initialValue={isCreate && 1}
+                        rules={[
+                            {required: true, message: 'Please input status!'},
+                        ]}>
                         <Select
-                            key={customer.id}
-                            style={{width: 200, marginTop: 10, marginBottom: 10}}
-                            value={customer.status ? customer.status : 1}
-                            onChange={(e) => setCustomer({...customer, status: e})}
+                            style={{width: 200}}
                             options={STATUS_OPTIONS}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'center', margin: 10}}>
+                    </Form.Item>
+                    <Form.Item
+                        name="urlImage"
+                        label="Tải ảnh lên">
                         <Upload
                             customRequest={handleUpload}
                             showUploadList={false}>
-                            <Button icon={<UploadOutlined/>}>Tải ảnh lên</Button>
+                            <Button icon={<UploadOutlined/>}>Upload</Button>
                         </Upload>
+                    </Form.Item>
+                    <div style={{display: "flex", justifyContent: 'center', margin: 10}}>
+                        {
+                            urlImage &&
+                            <Image
+                                src={urlImage}
+                                style={{
+                                    width: 135,
+                                    height: 135,
+                                    borderRadius: 10,
+                                }}
+                            />
+                        }
                     </div>
-                    {customer.urlImage &&
-                        <div style={{marginTop: 15, display: "flex", justifyContent: 'center'}}>
-                            <Image src={customer.urlImage}
-                                   style={{
-                                       width: 135,
-                                       height: 135,
-                                       borderRadius: 10,
-
-                                   }}/>
-                        </div>
-                    }
-                </div>
+                    <Form.Item
+                        wrapperCol={{
+                            offset: 15,
+                            span: 16,
+                        }}>
+                        <Button type="primary" htmlType="submit" style={{margin: 5}}>
+                            Submit
+                        </Button>
+                        <Button htmlType="button" onClick={closeAddOrUpdate} style={{margin: 5}}>
+                            Cancel
+                        </Button>
+                    </Form.Item>
+                </Form>
             </Modal>
         </div>
     )
