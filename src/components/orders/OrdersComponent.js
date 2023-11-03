@@ -113,15 +113,13 @@ const OrdersComponent = () => {
                 autoClose: 2000,
             });
             dispatch(getAllOrders(params))
-        }
-        if (res.code === 400) {
+        }else {
             toast.error('Không thể Thay đổi trạng thái , đã có lỗi xảy ra!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
             });
         }
-
     };
     const onSearch = async (value) => {
         const newParams = {...params, name: value}

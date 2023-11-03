@@ -53,7 +53,6 @@ const NavigationComponent = () => {
         }
     };
     return (
-
         <Menu
             onClick={onClick}
             defaultSelectedKeys={['1']}

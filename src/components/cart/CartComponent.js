@@ -152,7 +152,7 @@ const CartComponent = () => {
         values = {...values, ordersProducts: ordersProducts};
         const res = await dispatch(addOrUpdateOrders(values))
         if (res.code === 200) {
-            toast.success('Thêm Đơn hàng thành công!', {
+            toast.success('Thêm đơn hàng thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -160,10 +160,8 @@ const CartComponent = () => {
             sessionStorage.removeItem("cartItems");
             setIsLoading(!isLoading)
             setVoucher({})
-            return;
-        }
-        if (res.code === 400) {
-            toast.error('Thêm Đơn hàng thất bại!', {
+        } else {
+            toast.error('Thêm đơn hàng thất bại!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,

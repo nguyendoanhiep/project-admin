@@ -129,7 +129,7 @@ const CustomerComponent = () => {
     const handleAddOrUpdate = async () => {
         const res = await dispatch(addOrUpdateCustomer(customerForm.getFieldsValue()));
         if (res.code === 200) {
-            toast.success(isCreate ? 'Thêm Khách hàng thành công!' : 'Cập nhập thành công!', {
+            toast.success(isCreate ? 'Thêm mới thành công!' : 'Cập nhập thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,

@@ -133,16 +133,15 @@ const UserComponent = () => {
     const handleAdd = async () => {
         const res = await dispatch(registerUser(userForm.getFieldsValue()))
         if (res.code === 200) {
-            toast.success('Thêm Tài khoản thành công!', {
+            toast.success('Thêm tài khoản thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
             });
             setIsAddOrUpdate(false);
             setIsLoading(!isLoading)
-        }
-        if (res.code === 400) {
-            toast.error('Thêm Tài khoản thất bại!', {
+        }else {
+            toast.error('Thêm tài khoản thất bại! đã có lỗi xảy ra', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -161,9 +160,8 @@ const UserComponent = () => {
             });
             setIsAddOrUpdate(false);
             setIsLoading(!isLoading)
-        }
-        if (res.code === 400) {
-            toast.error('Cập nhập tài khoản thất bại!', {
+        }else {
+            toast.error('Cập nhập tài khoản thất bại! đã có lỗi xảy ra', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,

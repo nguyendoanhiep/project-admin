@@ -200,8 +200,7 @@ const ProductComponent = () => {
                 autoClose: 2000,
             });
             setIsLoading(!isLoading)
-        }
-        if (res.code === 400) {
+        }else {
             toast.error('Không thể xóa , đã có lỗi xảy ra!', {
                 className: 'my-toast',
                 position: "top-center",
@@ -225,8 +224,7 @@ const ProductComponent = () => {
             });
             setIsAddOrUpdate(false);
             setIsLoading(!isLoading)
-        }
-        if (res.code === 400) {
+        } else {
             toast.error(isCreate ? 'Thêm sản phẩm thất bại!' : 'Cập nhập sản phẩm thất bại', {
                 className: 'my-toast',
                 position: "top-center",
@@ -245,18 +243,30 @@ const ProductComponent = () => {
             });
             dispatch(getImageByProductId(productId))
             setIsLoading(!isLoading)
+        }else {
+            toast.success('Xóa ảnh thất bại! đã có lỗi xảy ra', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
         }
     }
     const onSetPriorityImage = async (id) => {
         const res = await dispatch(setPriorityImage(id, productId))
         if (res.data.code === 200) {
-            toast.success('Chọn ảnh thành công!', {
+            toast.success('Chọn ảnh đại diện thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
             });
             dispatch(getImageByProductId(productId))
             setIsLoading(!isLoading)
+        }else {
+            toast.success('Chọn ảnh đại diện thất bại! đã có lỗi xảy ra', {
+                className: 'my-toast',
+                position: "top-center",
+                autoClose: 2000,
+            });
         }
     }
 

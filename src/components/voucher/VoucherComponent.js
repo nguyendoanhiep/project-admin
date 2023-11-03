@@ -271,7 +271,7 @@ const VoucherComponent = () => {
     const handleAddOrUpdate = async (values) => {
         const res = await dispatch(addOrUpdateVoucher(values))
         if (res.code === 200) {
-            toast.success(isCreate ? 'Thêm Voucher thành công!' : 'Cập nhập voucher thành công!', {
+            toast.success(isCreate ? 'Thêm mới thành công!' : 'Cập nhập thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -279,9 +279,8 @@ const VoucherComponent = () => {
             setIsAddOrUpdate(false);
             setIsLoading(!isLoading)
             await voucherForm.resetFields()
-        }
-        if (res.code === 400) {
-            toast.error('Thêm Voucher thất bại!', {
+        } else {
+            toast.error(isCreate ? 'Thêm mới thất bại! đã có lỗi xảy ra' : ' Cập nhập thất bại! đã có lỗi xảy ra' , {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
