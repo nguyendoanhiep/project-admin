@@ -2,10 +2,9 @@ import {createSlice} from "@reduxjs/toolkit";
 
 const imageSlice = createSlice({
     name: 'image',
-    initialState: {isGetData: false, images: [] },
+    initialState: { images: [] },
     reducers: {
         getAllImageByProductId: (state, action) => {
-            state.isGetData = true;
             state.images = action.payload.data;
         },
         clearImages: (state) => {

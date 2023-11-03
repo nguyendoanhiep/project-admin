@@ -114,17 +114,16 @@ const UserComponent = () => {
                 password: record.password,
                 roles: record.roles.map(value => value.name),
                 status: record.status,
-                createDate: record.createDate
             });
             setIsCreate(false)
         } else {
+            userForm.setFieldsValue({
+                roles: ["ROLE_USER"],
+                status: 1
+            });
             setIsCreate(true)
         }
     };
-    const closeAddOrUpdate = () => {
-        setIsAddOrUpdate(false)
-        userForm.resetFields()
-    }
 
     const onSearch = async (value) => {
         const newParams = {...params, search: value}
@@ -178,6 +177,12 @@ const UserComponent = () => {
         dispatch(getAllUser(newParams))
 
     }
+    const validatePassword = (_, value) => {
+        if (!value || userForm.getFieldValue('password') === value) {
+            return Promise.resolve();
+        }
+        return Promise.reject('Password incorrect!');
+    };
 
     useEffect(() => {
         dispatch(getAllUser(params))
@@ -240,7 +245,10 @@ const UserComponent = () => {
                 }}/>
             <Modal title={isCreate ? "Thêm tài khoản mới" : "Chỉnh sửa thông tin"} open={isAddOrUpdate}
                    footer={null}
-                   closeIcon={null}>
+                   onCancel={() => {
+                       setIsAddOrUpdate(false)
+                       userForm.resetFields()
+                   }}>
                 <Form
                     form={userForm}
                     onFinish={isCreate ? handleAdd : handleUpdate}
@@ -251,18 +259,16 @@ const UserComponent = () => {
                         name="id"
                         hidden={true}/>
                     <Form.Item
-                        name="createDate"
-                        initialValue={isCreate && dayjs().format("DD-MM-YYYY HH:mm:ss")}
-                        hidden={true}/>
-                    <Form.Item
                         label="Nhập tên tài khoản : "
                         name="username"
                         rules={[
                             {required: true, message: 'Please input username!'},
+                            {min: 4, message: 'username must have a minimum of 6 characters!'},
                         ]}>
                         <Input
                             style={{width: 300}}
                             type="text"
+                            disabled={!isCreate}
                         />
                     </Form.Item>
                     <Form.Item
@@ -270,10 +276,11 @@ const UserComponent = () => {
                         name="numberPhone"
                         rules={[
                             {required: true, message: 'Please input number phone!'},
+                            {min: 10, message: 'number phone must have a minimum of 10 characters!'},
                         ]}>
                         <Input
                             style={{width: 300}}
-                            type="text"
+                            type="number"
                         />
                     </Form.Item>
                     {isCreate &&
@@ -283,6 +290,10 @@ const UserComponent = () => {
                                 name="password"
                                 rules={[
                                     {required: true, message: 'Please input password!'},
+                                    {
+                                        pattern: /^(?=.*[a-z])(?=.*[A-Z]).{6,}$/,
+                                        message: 'Password must have at least 1 uppercase letter, 1 lowercase letter and at least 6 characters',
+                                    },
                                 ]}>
                                 <Input.Password
                                     style={{width: 300}}
@@ -292,8 +303,16 @@ const UserComponent = () => {
                             <Form.Item
                                 label="Xác nhận mật khẩu : "
                                 name="confirmPassword"
+                                dependencies={['password']}
+                                hasFeedback
                                 rules={[
-                                    {required: true, message: 'Please input confirm password!'},
+                                    {
+                                        required: true,
+                                        message: 'Please confirm your password!'
+                                    },
+                                    {
+                                        validator: validatePassword
+                                    },
                                 ]}>
                                 <Input.Password
                                     style={{width: 300}}
@@ -305,7 +324,6 @@ const UserComponent = () => {
                     <Form.Item
                         label="Nhập roles : "
                         name="roles"
-                        initialValue={isCreate && ["ROLE_USER"]}
                         rules={[
                             {required: true, message: 'Please input roles!'},
                         ]}>
@@ -318,11 +336,7 @@ const UserComponent = () => {
                     </Form.Item>
                     <Form.Item
                         label="Nhập trạng thái : "
-                        name="status"
-                        initialValue={isCreate && 1}
-                        rules={[
-                            {required: true, message: 'Please input status!'},
-                        ]}>
+                        name="status">
                         <Select
                             style={{width: 200}}
                             options={STATUS_OPTIONS}
@@ -333,10 +347,18 @@ const UserComponent = () => {
                             offset: 15,
                             span: 16,
                         }}>
-                        <Button type="primary" htmlType="submit" style={{margin: 5}}>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            style={{margin: 5}}>
                             Submit
                         </Button>
-                        <Button htmlType="button" onClick={closeAddOrUpdate} style={{margin: 5}}>
+                        <Button htmlType="button"
+                                style={{margin: 5}}
+                                onClick={() => {
+                                    setIsAddOrUpdate(false)
+                                    userForm.resetFields()
+                                }}>
                             Cancel
                         </Button>
                     </Form.Item>

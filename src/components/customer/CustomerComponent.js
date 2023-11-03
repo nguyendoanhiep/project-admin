@@ -111,14 +111,14 @@ const CustomerComponent = () => {
             setUrlImage(record.urlImage)
             setIsCreate(false)
         } else {
+            customerForm.setFieldsValue({
+                status: 1,
+                dateOfBirth: dayjs().format("DD-MM-YYYY")
+
+            })
             setIsCreate(true)
         }
     };
-    const closeAddOrUpdate = () => {
-        setIsAddOrUpdate(false)
-        setUrlImage('')
-        customerForm.resetFields()
-    }
     const handleDelete = (record) => {
     };
     const onSearch = async (value) => {
@@ -235,7 +235,11 @@ const CustomerComponent = () => {
                 }}/>
             <Modal title={isCreate ? "Thêm khách hàng mới" : "Chỉnh sửa thông tin"} open={isAddOrUpdate}
                    footer={null}
-                   closeIcon={null}>
+                   onCancel={() => {
+                       setIsAddOrUpdate(false)
+                       setUrlImage('')
+                       customerForm.resetFields()
+                   }}>
                 <Form
                     form={customerForm}
                     onFinish={handleAddOrUpdate}
@@ -260,15 +264,19 @@ const CustomerComponent = () => {
                         name="numberPhone"
                         rules={[
                             {required: true, message: 'Please input number phone!'},
+                            {min: 10, message: 'number phone must have a minimum of 10 characters!'},
                         ]}>
                         <Input
                             style={{width: 300}}
-                            type="text"
+                            type="number"
                         />
                     </Form.Item>
                     <Form.Item
                         label=" Nhập email : "
-                        name="email">
+                        name="email"
+                        rules={[
+                            { type: 'email', message: 'Please enter a valid email!' },
+                        ]}>
                         <Input
                             style={{width: 300}}
                             type="text"
@@ -287,13 +295,12 @@ const CustomerComponent = () => {
                         name="loyaltyPoints">
                         <Input
                             style={{width: 300}}
-                            type="text"
+                            type="number"
                         />
                     </Form.Item>
                     <Form.Item
                         label="Nhập ngày sinh : "
                         name="dateOfBirth"
-                        initialValue={isCreate && dayjs().format("DD-MM-YYYY")}
                         getValueProps={(i) => ({value: dayjs(i ? i : dayjs(), "DD-MM-YYYY")})}
                     >
                         <DatePicker
@@ -308,11 +315,7 @@ const CustomerComponent = () => {
                     </Form.Item>
                     <Form.Item
                         label="Nhập trạng thái : "
-                        name="status"
-                        initialValue={isCreate && 1}
-                        rules={[
-                            {required: true, message: 'Please input status!'},
-                        ]}>
+                        name="status">
                         <Select
                             style={{width: 200}}
                             options={STATUS_OPTIONS}
@@ -345,10 +348,20 @@ const CustomerComponent = () => {
                             offset: 15,
                             span: 16,
                         }}>
-                        <Button type="primary" htmlType="submit" style={{margin: 5}}>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            style={{margin: 5}}>
                             Submit
                         </Button>
-                        <Button htmlType="button" onClick={closeAddOrUpdate} style={{margin: 5}}>
+                        <Button
+                            style={{margin: 5}}
+                            htmlType="button"
+                            onClick={() => {
+                                setIsAddOrUpdate(false)
+                                setUrlImage('')
+                                customerForm.resetFields()
+                            }}>
                             Cancel
                         </Button>
                     </Form.Item>

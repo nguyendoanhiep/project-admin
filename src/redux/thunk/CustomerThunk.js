@@ -1,6 +1,6 @@
 import {baseUrl} from "../../env/Config";
 import axios from "axios";
-import {addOrUpdate, findById, getAll, getAllByVoucherId} from "../slice/CustomerSlince";
+import { findById, getAll, getAllByVoucherId} from "../slice/CustomerSlince";
 
 const domain = baseUrl.host + baseUrl.port;
 export const getAllCustomer = (params) => async (dispatch) => {
@@ -40,7 +40,6 @@ export const getAllCustomerByVoucherId = (params) => async (dispatch) => {
 export const addOrUpdateCustomer = (customer) => async (dispatch) => {
     try {
         const response = await axios.post(domain + `/customer/addOrUpdate`,customer);
-        dispatch(addOrUpdate(response.data));
         return response.data
     } catch (error) {
         console.log(error);

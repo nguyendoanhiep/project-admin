@@ -1,6 +1,6 @@
 import {baseUrl} from "../../env/Config";
 import axios from "axios";
-import {addOrUpdate, getAll} from "../slice/ProductSlince";
+import {getAll} from "../slice/ProductSlince";
 
 const domain = baseUrl.host + baseUrl.port;
 export const getAllProduct = (params) => async (dispatch) => {
@@ -18,7 +18,6 @@ export const getAllProduct = (params) => async (dispatch) => {
 export const addOrUpdateProduct = (product) => async (dispatch) => {
     try {
         const response = await axios.post(domain + `/product/addOrUpdate`, product);
-        dispatch(addOrUpdate(response.data));
         return response.data
 
     } catch (error) {

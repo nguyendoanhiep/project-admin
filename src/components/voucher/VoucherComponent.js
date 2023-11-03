@@ -192,9 +192,9 @@ const VoucherComponent = () => {
         } else {
             setIsCreate(true)
             voucherForm.setFieldsValue({
-                status : 1,
-                voucherStartDate : dayjs().format("DD-MM-YYYY HH:mm:ss"),
-                voucherExpirationDate:dayjs().format("DD-MM-YYYY HH:mm:ss")
+                status: 1,
+                voucherStartDate: dayjs().format("DD-MM-YYYY HH:mm:ss"),
+                voucherExpirationDate: dayjs().format("DD-MM-YYYY HH:mm:ss")
             })
         }
     }
@@ -244,14 +244,6 @@ const VoucherComponent = () => {
         }
 
     }
-
-    const closeAddVoucherForCus = () => {
-        setIsAddVoucher(false)
-    }
-    const closeAddOrUpdate = async  () => {
-        await voucherForm.resetFields()
-        setIsAddOrUpdate(false)
-    }
     const handleDelete = async (record) => {
         const res = await dispatch(deleteVoucher(record.id))
         if (res.code === 200) {
@@ -279,7 +271,7 @@ const VoucherComponent = () => {
     const handleAddOrUpdate = async (values) => {
         const res = await dispatch(addOrUpdateVoucher(values))
         if (res.code === 200) {
-            toast.success(isCreate ? 'Thêm Voucher thành công!' : 'Sửa Voucher thành công!', {
+            toast.success(isCreate ? 'Thêm Voucher thành công!' : 'Cập nhập voucher thành công!', {
                 className: 'my-toast',
                 position: "top-center",
                 autoClose: 2000,
@@ -368,9 +360,14 @@ const VoucherComponent = () => {
                     margin: 15,
                     alignSelf: 'flex-end'
                 }}/>
-            <Modal title={isCreate ? "Thêm mới Voucher" : "Chỉnh sửa Voucher"} open={isAddOrUpdate}
+            <Modal title={isCreate ? "Thêm mới Voucher" : "Chỉnh sửa Voucher"}
+                   open={isAddOrUpdate}
                    footer={null}
-                   closeIcon={null}>
+                   onCancel={() => {
+                       voucherForm.resetFields()
+                       setIsAddOrUpdate(false)
+                   }}
+            >
                 <Form
                     form={voucherForm}
                     name="voucherForm"
@@ -387,6 +384,7 @@ const VoucherComponent = () => {
                         name="name"
                         rules={[
                             {required: true, message: 'Please input voucher name!'},
+                            {min: 4, message: 'voucher name must have a minimum of 4 characters!'},
                         ]}>
                         <Input
                             style={{width: 300}}
@@ -415,26 +413,23 @@ const VoucherComponent = () => {
                         ]}>
                         <Input
                             style={{width: 300}}
-                            type="text"
+                            type="number"
                         />
                     </Form.Item>
                     <Form.Item
                         label="Nhập số lượng : "
                         name="quantity"
                         rules={[
-                            {required: true, message: 'Please input quantity!'},
+                            {required: true, message: 'Please input quantity!'}
                         ]}>
                         <Input
                             style={{width: 300}}
-                            type="text"
+                            type="number"
                         />
                     </Form.Item>
                     <Form.Item
                         label="Nhập trạng thái : "
-                        name="status"
-                        rules={[
-                            {required: true, message: 'Please input status!'},
-                        ]}>
+                        name="status">
                         <Select
                             style={{width: 200}}
                             options={STATUS_OPTIONS}
@@ -475,10 +470,19 @@ const VoucherComponent = () => {
                             offset: 15,
                             span: 16,
                         }}>
-                        <Button type="primary" htmlType="submit" style={{margin: 5}}>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            style={{margin: 5}}>
                             Submit
                         </Button>
-                        <Button htmlType="button" onClick={closeAddOrUpdate} style={{margin: 5}}>
+                        <Button
+                            htmlType="button"
+                            style={{margin: 5}}
+                            onClick={() => {
+                                voucherForm.resetFields()
+                                setIsAddOrUpdate(false)
+                            }}>
                             Cancel
                         </Button>
                     </Form.Item>
@@ -487,7 +491,7 @@ const VoucherComponent = () => {
             <Modal width="800px"
                    open={isAddVoucher}
                    onOk={handleAddVoucherForCus}
-                   onCancel={closeAddVoucherForCus}
+                   onCancel={() => setIsAddVoucher(false)}
             >
                 <div>
                     <Select

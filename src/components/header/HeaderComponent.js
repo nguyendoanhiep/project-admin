@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {UploadOutlined, UserOutlined} from '@ant-design/icons';
-import {Dropdown, Space, Layout, Input, Upload, Button, Image, Modal, DatePicker} from 'antd';
+import {Dropdown, Space, Layout, Input, Upload, Button, Image, Modal, DatePicker, Form, Select} from 'antd';
 import logo from '../../env/img/logo.png'
 import {Link, useNavigate} from 'react-router-dom';
 import {useDispatch, useSelector} from 'react-redux';
@@ -10,17 +10,18 @@ import {addOrUpdateCustomer, findCustomerById} from "../../redux/thunk/CustomerT
 import {getDownloadURL, ref, uploadBytesResumable} from "firebase/storage";
 import {storage} from "../../env/FirebaseConfig";
 import dayjs from "dayjs";
+
 const {Header} = Layout;
 
 const HeaderComponent = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const isLoggedIn = JSON.parse(localStorage.getItem('Token'));
-    const [getUserLogin , setUserLogin] = useState({});
-    const [customer, setCustomer] = useState({})
+    const [getUserLogin, setUserLogin] = useState({});
     const [isAddOrUpdate, setIsAddOrUpdate] = useState(false);
-    const getCustomer = useSelector((state) => state.customer.customer);
-
+    const customer = useSelector((state) => state.customer.customer);
+    const [customerForm] = Form.useForm();
+    const [urlImage, setUrlImage] = useState('')
     const handleLogout = () => {
         dispatch(logout());
         toast.error('Đăng xuất thành công!', {
@@ -67,7 +68,10 @@ const HeaderComponent = () => {
                 () => {
                     getDownloadURL(uploadTask.snapshot.ref).then(async (url) => {
                         onSuccess();
-                        setCustomer({...customer, urlImage: url})
+                        setUrlImage(url)
+                        customerForm.setFieldsValue({
+                            urlImage: url
+                        })
                     });
                 }
             );
@@ -76,8 +80,8 @@ const HeaderComponent = () => {
         }
     };
 
-    const handleAddOrUpdate = async () => {
-        const res = await dispatch(addOrUpdateCustomer(customer))
+    const handleAddOrUpdate = async (values) => {
+        const res = await dispatch(addOrUpdateCustomer(values))
         if (res.code === 200) {
             toast.success('Cập nhập thành công!', {
                 className: 'my-toast',
@@ -94,18 +98,14 @@ const HeaderComponent = () => {
             });
         }
     }
-    const closeAddOrUpdate = () => {
-        setIsAddOrUpdate(false)
-        setCustomer({})
-    }
-
     useEffect(() => {
-        if(isLoggedIn){
+        if (isLoggedIn) {
             const [header, payload, signature] = isLoggedIn.split('.');
             setUserLogin(JSON.parse(atob(payload)))
         }
-        setCustomer(getCustomer)
-    }, [getCustomer,isLoggedIn]);
+        customerForm.setFieldsValue(customer)
+        setUrlImage(customer.urlImage)
+    }, [customer, isLoggedIn]);
 
     return (
         <Header className='container' style={{
@@ -132,76 +132,135 @@ const HeaderComponent = () => {
                 <Link to="/login" style={{color: 'black', fontSize: '16px'}}>Login</Link>
             }
             <Modal title="Chỉnh sửa thông tin" open={isAddOrUpdate}
-                   onOk={handleAddOrUpdate}
-                   onCancel={closeAddOrUpdate}>
-                <div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <div> Nhập họ tên :</div>
+                   footer={null}
+                   onCancel={() => {
+                       setIsAddOrUpdate(false)
+                       setUrlImage('')
+                       customerForm.resetFields()
+                   }}>
+                <Form
+                    form={customerForm}
+                    onFinish={handleAddOrUpdate}
+                    name="customerForm"
+                    labelCol={{span: 8}}
+                    wrapperCol={{span: 18}}>
+                    <Form.Item
+                        name="id"
+                        hidden={true}>
+                    </Form.Item>
+                    <Form.Item
+                        label=" Nhập họ và tên : "
+                        name="name"
+                    >
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={customer.name || ''}
-                            onChange={(e) => setCustomer({...customer, name: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span> Nhập Số điện thoại : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label=" Nhập số điện thoại : "
+                        name="numberPhone"
+                        rules={[
+                            {required: true, message: 'Please input number phone!'},
+                            {min: 10, message: 'number phone must have a minimum of 10 characters!'},
+                        ]}>
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
-                            type="text"
-                            value={customer.numberPhone || ''}
-                            onChange={(e) => setCustomer({...customer, numberPhone: e.target.value})}
+                            style={{width: 300}}
+                            type="number"
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span> Nhập Email : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label=" Nhập email : "
+                        name="email"
+                        rules={[
+                            {type: 'email', message: 'Please enter a valid email!'},
+                        ]}>
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={customer.email || ''}
-                            onChange={(e) => setCustomer({...customer, email: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span> Nhập địa chỉ : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label=" Nhập địa chỉ : "
+                        name="address">
                         <Input
-                            style={{width: 300, marginTop: 10, marginBottom: 10}}
+                            style={{width: 300}}
                             type="text"
-                            value={customer.address || ''}
-                            onChange={(e) => setCustomer({...customer, address: e.target.value})}
                         />
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'space-between', alignItems: "center"}}>
-                        <span>Nhập ngày sinh : </span>
+                    </Form.Item>
+                    <Form.Item
+                        label="Nhập ngày sinh : "
+                        name="dateOfBirth"
+                        getValueProps={(i) => ({value: dayjs(i ? i : dayjs(), "DD-MM-YYYY")})}
+                    >
                         <DatePicker
-                            style={{width: 300, marginTop: 10, marginBottom: 10,}}
-                            value={customer.dateOfBirth ? dayjs(customer.dateOfBirth , "DD-MM-YYYY")  : null}
-                            onChange={(e) => setCustomer({
-                                ...customer, dateOfBirth: e && e.format("DD-MM-YYYY")
-                            })}/>
-                    </div>
-                    <div style={{width: 300, marginTop: 10, marginBottom: 10}}>
-                        <p>Điểm thưởng : <span style={{fontSize: 20 , marginLeft:10}}>{customer.loyaltyPoints || ''}</span></p>
-                    </div>
-                    <div style={{display: "flex", justifyContent: 'center'}}>
+                            style={{width: 200}}
+                            format="DD-MM-YYYY"
+                            onChange={(value) => {
+                                return customerForm.setFieldsValue({
+                                    dateOfBirth: dayjs(value).format("DD-MM-YYYY")
+                                })
+                            }}
+                            showTime/>
+                    </Form.Item>
+                    <Form.Item
+                        name="status"
+                        hidden={true}>
+                    </Form.Item>
+                    <Form.Item
+                        label="Điểm thưởng : "
+                        name="loyaltyPoints">
+                        <span style={{
+                            fontSize: 20,
+                            marginLeft: 10
+                        }}>{customerForm.getFieldValue("loyaltyPoints") || 0}
+                        </span>
+                    </Form.Item>
+                    <Form.Item
+                        name="urlImage"
+                        label="Tải ảnh lên">
                         <Upload
                             customRequest={handleUpload}
                             showUploadList={false}>
                             <Button icon={<UploadOutlined/>}>Upload</Button>
                         </Upload>
+                    </Form.Item>
+                    <div style={{display: "flex", justifyContent: 'center', margin: 10}}>
+                        {
+                            urlImage &&
+                            <Image
+                                src={urlImage}
+                                style={{
+                                    width: 135,
+                                    height: 135,
+                                    borderRadius: 10,
+                                }}
+                            />
+                        }
                     </div>
-                    {customer.urlImage &&
-                        <div style={{marginTop: 15, display: "flex", justifyContent: 'center'}}>
-                            <Image src={customer.urlImage}
-                                   style={{
-                                       width: 135,
-                                       height: 135,
-                                       borderRadius: 10,
-
-                                   }}/>
-                        </div>
-                    }
-                </div>
+                    <Form.Item
+                        wrapperCol={{
+                            offset: 15,
+                            span: 16,
+                        }}>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            style={{margin: 5}}>
+                            Submit
+                        </Button>
+                        <Button
+                            style={{margin: 5}}
+                            htmlType="button"
+                            onClick={() => {
+                                setIsAddOrUpdate(false)
+                                setUrlImage('')
+                                customerForm.resetFields()
+                            }}>
+                            Cancel
+                        </Button>
+                    </Form.Item>
+                </Form>
             </Modal>
         </Header>
     )

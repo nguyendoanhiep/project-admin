@@ -67,7 +67,7 @@ const CartComponent = () => {
             dataIndex: '',
             key: 'x',
             fixed: 'right',
-            align:'center',
+            align: 'center',
             render: (record) => (
                 <span>
                  <Button style={{marginLeft: 5, width: 40, backgroundColor: "#00CC00"}} type="primary"
@@ -196,7 +196,7 @@ const CartComponent = () => {
                     x: 950
                 }}
             />
-            <div className="section-content  p-5 "
+            <div className="section-content p-5 "
                  style={{maxWidth: 400, height: 400}}>
                 <div className="heading-section text-center">
                     <Form
@@ -208,6 +208,7 @@ const CartComponent = () => {
                             name="numberPhone"
                         >
                             <AutoComplete
+                                allowClear={true}
                                 options={customers && customers.map(customer => ({
                                     value: customer.numberPhone,
                                     label: customer.name + ' : ' + customer.numberPhone
@@ -223,7 +224,6 @@ const CartComponent = () => {
                                 onChange={(e) => {
                                     setVoucher({})
                                     dispatch(findVoucherByNumberPhone(e))
-                                    console.log(vouchersByNumberPhone)
                                 }}
                                 placeholder="Nhập số điện thoại"
                             />
@@ -243,13 +243,19 @@ const CartComponent = () => {
                         <Form.Item
                             name="totalValue"
                         >
-                            <div>
-                                <h6> Tổng giá trị đơn hàng : {originalTotalValue} VND</h6>
-                                <h6> Số tiền được giảm : {voucher.value} VND</h6>
-                                <h6> Số tiền cần thanh toán : {totalValue} VND</h6>
+                            <div style={{display: "flex", justifyContent: "space-between"}}>
+                                <h6> Tổng giá trị đơn hàng : </h6>
+                                <h6>{originalTotalValue} VND</h6>
+                            </div>
+                            <div style={{display: "flex", justifyContent: "space-between"}}>
+                                <h6> Số tiền được giảm : </h6>
+                                <h6>{voucher.value} VND</h6>
+                            </div>
+                            <div style={{display: "flex", justifyContent: "space-between"}}>
+                                <h6> Số tiền cần thanh toán : </h6>
+                                <h6>{totalValue} VND</h6>
                             </div>
                         </Form.Item>
-
                         <Form.Item>
                             <Button type="primary" htmlType="submit"
                                     className="login-form-button"

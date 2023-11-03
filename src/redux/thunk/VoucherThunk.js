@@ -1,6 +1,6 @@
 import {baseUrl} from "../../env/Config";
 import axios from "axios";
-import {getAll,addOrUpdate,findByNumberPhone} from "../slice/VoucherSlince";
+import {getAll,findByNumberPhone} from "../slice/VoucherSlince";
 
 const domain = baseUrl.host + baseUrl.port;
 export const getAllVoucher = (params) => async (dispatch) => {
@@ -17,7 +17,6 @@ export const getAllVoucher = (params) => async (dispatch) => {
 export const addOrUpdateVoucher = (voucher) => async (dispatch) => {
     try {
         const response = await axios.post(domain + `/voucher/addOrUpdate`,voucher);
-        await dispatch(addOrUpdate(response.data));
         return response.data
     } catch (error) {
         console.log(error);

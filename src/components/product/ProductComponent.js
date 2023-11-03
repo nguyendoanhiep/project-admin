@@ -32,9 +32,16 @@ const ProductComponent = () => {
             key: 'images',
             width: 160,
             render: (text) => {
-                const image = text.images.find(data => data.priority === 1);
-                if (image) {
-                    return <Image style={{width: 140, height: 140, borderRadius: 10}} src={image.urlImage}/>;
+                const data = text.images.find(data => data.priority === 1)
+                if(data){
+                    return (
+                        <Image.PreviewGroup
+                            items={text.images.map(data => data.urlImage)}
+                        >
+                            <Image style={{width: 140, height: 140, borderRadius: 10}}
+                                   src={data && data.urlImage}/>
+                        </Image.PreviewGroup>
+                    )
                 }
             }
         },
@@ -174,16 +181,16 @@ const ProductComponent = () => {
             dispatch(getImageByProductId(record.id))
             productForm.setFieldsValue(record)
             setIsCreate(false)
-
         } else {
+            productForm.setFieldsValue({
+                type: 1,
+                status: 1
+            })
             dispatch(clearImages())
             setIsCreate(true)
         }
     };
 
-    const closeAddOrUpdate = () => {
-        setIsAddOrUpdate(false)
-    }
     const handleDelete = async (record) => {
         const res = await dispatch(deleteProduct(record.id))
         if (res.code === 200) {
@@ -365,8 +372,12 @@ const ProductComponent = () => {
                     margin: 15,
                     alignSelf: 'flex-end'
                 }}/>
-            <Modal title={isCreate ? "Thêm mới sản phẩm" : "Chỉnh sửa sản phẩm"} open={isAddOrUpdate}
-                   closeIcon={null}
+            <Modal title={isCreate ? "Thêm mới sản phẩm" : "Chỉnh sửa sản phẩm"}
+                   open={isAddOrUpdate}
+                   onCancel={() => {
+                       setIsAddOrUpdate(false)
+                       productForm.resetFields()
+                   }}
                    footer={null}>
                 <Form
                     form={productForm}
@@ -384,6 +395,7 @@ const ProductComponent = () => {
                         name="name"
                         rules={[
                             {required: true, message: 'Please input  name!'},
+                            {min: 4, message: 'product name must have a minimum of 4 characters!'},
                         ]}>
                         <Input
                             style={{width: 300}}
@@ -393,7 +405,7 @@ const ProductComponent = () => {
                     <Form.Item
                         label="Nhập mô tả : "
                         name="description">
-                        <Input
+                        <TextArea
                             style={{width: 300}}
                             type="text"
                         />
@@ -406,16 +418,12 @@ const ProductComponent = () => {
                         ]}>
                         <Input
                             style={{width: 300}}
-                            type="text"
+                            type="number"
                         />
                     </Form.Item>
                     <Form.Item
                         label="Nhập trạng thái : "
-                        name="status"
-                        initialValue={isCreate && 1}
-                        rules={[
-                            {required: true, message: 'Please input status!'},
-                        ]}>
+                        name="status">
                         <Select
                             style={{width: 200}}
                             options={STATUS_OPTIONS}
@@ -423,11 +431,7 @@ const ProductComponent = () => {
                     </Form.Item>
                     <Form.Item
                         label="Nhập loại : "
-                        name="type"
-                        initialValue={isCreate && 1}
-                        rules={[
-                            {required: true, message: 'Please input status!'},
-                        ]}>
+                        name="type">
                         <Select
                             style={{width: 200}}
                             options={TYPE_OPTIONS}
@@ -481,10 +485,19 @@ const ProductComponent = () => {
                             offset: 15,
                             span: 16,
                         }}>
-                        <Button type="primary" htmlType="submit" style={{margin: 5}}>
+                        <Button
+                            type="primary"
+                            htmlType="submit"
+                            style={{margin: 5}}>
                             Submit
                         </Button>
-                        <Button htmlType="button" onClick={closeAddOrUpdate} style={{margin: 5}}>
+                        <Button
+                            htmlType="button"
+                            style={{margin: 5}}
+                            onClick={() => {
+                                productForm.resetFields()
+                                setIsAddOrUpdate(false)
+                            }}>
                             Cancel
                         </Button>
                     </Form.Item>
