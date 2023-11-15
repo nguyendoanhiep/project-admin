@@ -1,10 +1,10 @@
 import './App.css';
 import {ToastContainer} from "react-toastify";
-import HeaderComponent from "./components/header/HeaderComponent"
-import FooterComponent from "./components/footer/FooterComponent"
+import HeaderC from "./modules/header/components"
+import Footer from "./modules/footer/components"
 import "react-bootstrap"
 import "bootstrap-4-react"
-import NavigationComponent from "./components/nav/NavigationComponent";
+import Navigation from "./modules/navigation/components";
 import RouterMain from "./router/RouterMain";
 import {useLocation} from "react-router-dom";
 import {useEffect} from "react";
@@ -17,12 +17,12 @@ function App() {
     }, [location])
     return (
         <div className="app">
-            <HeaderComponent/>
+            <HeaderC/>
             <div style={{display: 'flex', justifyContent: 'space-between'}}>
                 {
                     isLoggedIn ?
-                        <div style={{width: '22%'}}>
-                            <NavigationComponent/>
+                        <div style={{width: '19%'}}>
+                            <Navigation/>
                         </div> :
                         <></>
                 }
@@ -30,7 +30,7 @@ function App() {
                     <RouterMain/>
                 </div>
             </div>
-            <FooterComponent/>
+            <Footer/>
             <ToastContainer/>
         </div>
     )

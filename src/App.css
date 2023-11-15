@@ -3,8 +3,9 @@ html {
 }
 
 body {
+    padding: 20px;
+    width: 100%;
     max-width: 2400px;
-    width:calc(100% - 17px) !important;
 
 }
 
@@ -48,10 +49,10 @@ a {
     color: #f34949;
 }
 
-@media (min-width: 1000px) {
+@media (min-width: 1550px) {
     .app {
-        margin-left: 10%;
-        margin-right: 10%;
+        margin-left: 5%;
+        margin-right: 5%;
     }
 }
 
